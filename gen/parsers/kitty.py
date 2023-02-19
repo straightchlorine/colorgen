@@ -17,8 +17,8 @@ class KittyGen(ConfigGen):
         Defines names for the files and ensures that required paths exist.
         """
         super().__init__(palette, colorscheme)
-        self.config_path = Path.joinpath(Path.home(), '.config', 'kitty',
-                                         'colors', str(colorscheme))
+        self.config_path = Path.joinpath(
+                Path.home(), '.config', 'kitty', 'colors')
         self.filename = 'colors-' + str(colorscheme) + '.conf'
         self.filepath = Path.joinpath(self.config_path, self.filename)
         self.__check_directory()
