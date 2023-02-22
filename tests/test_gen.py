@@ -26,8 +26,6 @@ class TestGen(unittest.TestCase):
             test = True
 
             #print(self.gen.filepath.read_text())
-
             self.gen.filepath.unlink()
-            self.gen.config_path.rmdir()
 
         self.assertTrue(test)
