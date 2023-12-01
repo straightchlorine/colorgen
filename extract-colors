@@ -1,0 +1,481 @@
+#!/home/zweiss/.venv/bin/python
+
+import sys
+import typing
+import colorgram
+
+from pathlib import Path
+from PIL import ImageColor
+
+class ExtractColors:
+    """
+        Extract 18 colors from the image.
+    """
+    # path to the image
+    image : Path
+
+    # lists containing colors in rgb and hex format
+    colors_rgb : list[tuple] = []
+    colors_hex : list[str] = []
+
+    def __init__(self, image : Path) -> None:
+        self.image = image
+        self.__extract_colors()
+
+    @staticmethod
+    def __rgb_to_hex(rgb : tuple[int, int, int]):
+        """
+            Convert rgb tuple into hex string.
+
+            :param rgb tuple
+            :return hex string
+        """
+        return "#{:02x}{:02x}{:02x}".format(rgb[0], rgb[1], rgb[2])
+
+    def __extract_colors(self):
+        """
+            Extract 18 most common colors from the image.
+        """
+        print(f'[...] extracting colors from {self.image}...')
+        extracted_colors = colorgram.extract(self.image, 17)
+        print(f'[!!!] colors extracted.')
+        for color in extracted_colors:
+            self.colors_rgb.append(( color.rgb[0], color.rgb[1], color.rgb[2]))
+            self.colors_hex.append(ExtractColors.__rgb_to_hex(
+                                                        color.rgb))
+
+class ParseColors:
+    """
+        Parse colors lists into dictionary with key being
+        name of the colors and value the color itself.
+
+        eg. { background : #ffffff }
+    """
+    # path to the image
+    image : Path
+
+    # color extractor
+    extract_color : ExtractColors
+
+    # color dictionaries
+    color_entries_hex : dict[str, str]
+    color_entries_rgb : dict[str, tuple[int, int, int]]
+
+
+    def __init__(self, image) -> None:
+        self. image = image
+        extract_colors = ExtractColors(self.image)
+        self.__parse_colors(extract_colors.colors_hex)
+        self.__parse_colors(extract_colors.colors_rgb)
+
+    def __parse_rgb(self, colors : list):
+        """
+            Parses RGB colors into dictionary.
+
+            :param colors list of generated colors
+        """
+        self.color_entries_rgb = { 'background' : colors[0],
+                                   'foreground' : colors[3],
+                                   'cursor'     : colors[3],
+                                   'color0'     : colors[0],
+                                   'color1'     : colors[1],
+                                   'color2'     : colors[2] }
+        # filling colors3-15
+        for i in range(4, 17):
+            color_number='color' + str(i - 1)
+            self.color_entries_rgb[color_number] = colors[i]
+
+    def __parse_hex(self, colors : list):
+        """
+            Parses RGB colors into dictionary.
+
+            :param colors list of generated colors
+        """
+        self.color_entries_hex = { 'background' : colors[0],
+                                   'foreground' : colors[3],
+                                   'cursor'     : colors[3],
+                                   'color0'     : colors[0],
+                                   'color1'     : colors[1],
+                                   'color2'     : colors[2] }
+        # filling colors3-15
+        for i in range(4, 17):
+            color_number='color' + str(i - 1)
+            self.color_entries_hex[color_number] = colors[i]
+
+
+    def __parse_colors(self, colors : list):
+        """
+            Parses generated_colors into 3 special colors and 15 basic ones,
+            defining how terminal and programs within it look.
+
+            :param colors list of generated colors
+        """
+        if type(colors[0]) is tuple:
+            self.__parse_rgb(colors)
+        else:
+            self.__parse_hex(colors)
+
+class Visualise:
+    """
+        Display generated colors and configs along with both names
+        and colors
+    """
+    @staticmethod
+    def __gen_colored_output(rgb : tuple[int, int, int]):
+        """
+            Generates colored string - four spaces with background
+            in desired color.
+
+            :param rgb rgb tuple
+        """
+        color_code = f"\033[48;2;{rgb[0]};{rgb[1]};{rgb[2]}m" 
+        reset_code = "\033[0m" 
+        return f'{color_code}    {reset_code}'
+
+    @staticmethod
+    def __print_entry(id : str, rgb : tuple[int, int, int]):
+        """
+            Print one line of colored output, the name of the color
+            and the color itself.
+
+            :param id name of the color
+            :param rgb color
+        """
+        print('{:<15}{:<12}'.format(id, Visualise.__gen_colored_output(rgb)))
+
+    @staticmethod
+    def display_dict(rgb_colors : dict[str, tuple[int, int, int]]):
+        """
+            Display dictionary filled with RBB colors.
+
+            :param rgb_colors dictionary of color names and their rgb's
+        """
+        print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+        for id, rgb in rgb_colors.items():
+            Visualise.__print_entry(id, rgb)
+        print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+
+    @staticmethod
+    def __unpack_RGB(rgb) -> tuple[int, int, int]:
+        """
+            Unpack ImageColor._RGB type to simple tuple (raw RGB).
+
+            :param rgb ImageColor._RGB
+        """
+        r : int = rgb[0]
+        g : int = rgb[1]
+        b : int = rgb[2]
+        return (r, g, b)
+
+    @staticmethod
+    def __hex_to_rgb(hex : str) -> tuple[int, int, int]:
+        """
+            Converts HEX string into RGB tuple.
+
+            :param hex color string
+        """
+        return Visualise.__unpack_RGB(ImageColor.getrgb(hex))
+
+    @staticmethod
+    def display_hex_dict(hex_colors : dict[str, str]):
+        """
+            Display dictionary filled with HEX colors.
+
+            :param hex_colors dictionary of colors and their names
+        """
+        print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+        for id, hex in hex_colors.items():
+            Visualise.__print_entry(id, Visualise.__hex_to_rgb(hex))
+        print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+
+
+class Writer:
+    """
+        Writes desired colors to files in appropriate fashion.
+    """
+    def __init__(self, parsed_colors : ParseColors) -> None:
+        self.parsed_colors = parsed_colors
+
+    def kitty_config(self):
+        """
+            Generate kitty config in $HOME/.config/kitty/colors/
+            colors-kitty-<image_name>.conf.
+        """
+        # name of the provided picture
+        image_name = self.parsed_colors.image.stem
+
+        # name of the generated config file
+        config_name = 'colors-kitty-' + image_name + '.conf'
+
+        # path to the new configuration file
+        config_path = Path.joinpath(
+            Path.home(),
+            '.config',
+            'kitty',
+            'colors',
+            str(config_name)
+        )
+
+        print(f'[...] writing generated config...')
+
+        with open(config_path, 'w') as kitty_colors:
+            for k,v in self.parsed_colors.color_entries_hex.items():
+                kitty_colors.write('{:<12}{:<12}'.format(k, v) + '\n')
+
+        print(f'[!!!] config written to {config_path}.')
+
+    def css_style(self):
+        """
+            Generate css file $HOME/.config/eww/styles/colors-<image-name>.scss
+            containing generated colors.
+        """
+        # name of the provided picture
+        image_name = self.parsed_colors.image.stem
+        # name of the generated config file
+        css_name ='colors-' + image_name + '.scss'
+
+        # path to the new configuration file
+        css_path = Path.joinpath(
+            Path.home(),
+            '.config',
+            'eww',
+            'styles',
+            str(css_name)
+        )
+
+        print(f'[...] writing generated colors as {css_name}...')
+
+        with open(css_path, 'w') as css_colors:
+            for k,v in self.parsed_colors.color_entries_hex.items():
+                css_colors.write('${:<12} : {:<7};'.format(k, v) + '\n')
+
+        print(f'[!!!] colors written to {css_path}.')
+
+    def rofi_colors(self):
+        """
+            Generate rasi colors file
+            $HOME/.config/rofi/colors/colors-<image-name>.rasi
+        """
+        # name of the provided picture
+        image_name = self.parsed_colors.image.stem
+        # name of the generated config file
+        rofi_name = image_name + '.rasi'
+
+        # path to the new configuration file
+        rofi_path = Path.joinpath(
+            Path.home(),
+            '.config',
+            'rofi',
+            'colors',
+            str(rofi_name)
+        )
+
+        print(f'[...] writing generated colors as {rofi_name}...')
+
+        rofi_colors_hex = {
+            'background' : self.parsed_colors.color_entries_hex['background'],
+            'background-alt' : self.parsed_colors.color_entries_hex['color1'],
+            'foreground' : self.parsed_colors.color_entries_hex['foreground'],
+            'selected' : self.parsed_colors.color_entries_hex['color2'],
+            'active' : self.parsed_colors.color_entries_hex['color3'],
+            'urgent' : self.parsed_colors.color_entries_hex['color3']
+        }
+
+        with open(rofi_path, 'w') as rofi_colors:
+            rofi_colors.write('* {\n')
+            rofi_colors.write('/* colors for rofi themes */')
+            rofi_colors.write('\n')
+
+            for k,v in rofi_colors_hex.items():
+                rofi_colors.write('{:<12} : {:<7};'.format(k, v) + '\n')
+
+            rofi_colors.write('\n')
+            rofi_colors.write('/* rest of the generated colors */')
+            rofi_colors.write('\n')
+
+
+            for k,v in self.parsed_colors.color_entries_hex.items():
+                if k not in ['background', 'foreground']:
+                    rofi_colors.write('{:<12} : {:<7};'.format(k, v) + '\n')
+            rofi_colors.write('}')
+
+        print(f'[!!!] colors written to {rofi_name}.')
+
+class Reader:
+    """
+        Allows to read the colors from existing files and display
+        them in color.
+    """
+    # dictionaries with extracted data
+    kitty_colors : dict[str, str] = {}
+    css_colors : dict[str, str] = {}
+    rofi_colors : dict[str, str] = {}
+
+    def __kitty_line_split(self, line : str) -> list[str]:
+        """
+            Retrieve information from single line of kitty config.
+
+            :param line single line from configuration file
+        """
+        # splitting using spaces (number of spaces is not constant,
+        # thus split is full of empty elements
+        line_split = line.split(' ')
+
+        # clearing said spaces
+        output = []
+        for s in line_split:
+            if s != '': output.append(s)
+
+        # new line symbols are left after the color
+        output[1] = output[1].replace('\n', '')
+
+        return output
+
+    def __kitty_parse_file(self, kitty_conf : typing.TextIO):
+        """
+            Parse kitty .conf file line by line.
+        """
+        for line in kitty_conf:
+            color = self.__kitty_line_split(line)
+            self.kitty_colors[color[0]] = color[1]
+
+    def kitty_config(self, kitty_config : Path) -> dict[str, str]:
+        """
+            Read kitty color configuration file and display
+            it along with coloring
+        """
+        with open(kitty_config, 'r') as kitty_conf:
+            self.__kitty_parse_file(kitty_conf)
+        return self.kitty_colors
+
+    def __css_line_split(self, line : str) -> list[str]:
+        """
+            Retrieve information from single line of css style config.
+
+            :param line single line from configuration file
+        """
+        # splitting the line according to css syntax $var : #color
+        line_split = line.split(':')
+
+        # clearing the trailing spaces
+        output = []
+        for s in line_split:
+            output.append(s.strip())
+
+        # new line symbols are left after the color
+        output[1] = output[1].replace('\n', '')
+        return output
+
+    def __css_parse_style(self, style : typing.TextIO):
+        """
+            Parse css .scss file line by line.
+        """
+        for line in style:
+            color = self.__css_line_split(line)
+            self.css_colors[color[0]] = color[1]
+
+    def css_style(self, css_style : Path) -> dict[str, str]:
+        """
+            Read css style from given file and display it
+            along with coloring.
+        """
+        with open(css_style, 'r') as style:
+            self.__css_parse_style(style)
+        return self.css_colors
+
+    def __rofi_line_split(self, line : str) -> list[str]:
+        """
+            Retrieve information from single line of rofi config.
+
+            :param line single line from configuration file
+        """
+        # splitting the line according to css syntax var : #color
+        line_split = line.split(':')
+
+        # clearing the trailing spaces
+        output = []
+        for s in line_split:
+            output.append(s.strip())
+
+        # new line symbols are left after the color
+        output[1] = output[1].replace(';', '')
+        output[1] = output[1].replace('\n', '')
+        return output
+
+    def __rofi_parse_line(self, line : str):
+        """
+            Parse each line from the file.
+
+            :param line single line from the file
+        """
+        if '{' not in line and '}' not in line:
+            color = self.__rofi_line_split(line)
+            self.rofi_colors[color[0]] = color[1]
+
+    def __rofi_parse_colors(self, rasi_colors : typing.TextIO):
+        """
+            Parse colors .rasi file.
+
+            :param rasi_colors rasi file
+        """
+        for line in rasi_colors:
+            if ';' in line and ':' in line:
+                self.__rofi_parse_line(line)
+
+    def rofi_config(self, rofi_colors : Path):
+        """
+            Read rofi colors form given file and display
+            it along with coloring.
+
+            :param rofi_colors rofi file
+        """
+        with open(rofi_colors, 'r') as rasi_colors:
+            self.__rofi_parse_colors(rasi_colors)
+        return self.rofi_colors
+
+class Colorscheme:
+    parsecolors : ParseColors
+
+    def generate_colors(self, image_or_config : Path):
+        """
+            Generate colors based on given image and write them
+            into .scss and .conf files.
+
+            :param image_or_config : Path to image or config
+        """
+        self.parsecolors = ParseColors(image_or_config)
+        Visualise.display_dict(self.parsecolors.color_entries_rgb)
+
+        # writing generated configuration to files
+        writer = Writer(self.parsecolors)
+        #writer.kitty_config()
+        #writer.css_style()
+        writer.rofi_colors()
+
+    def list_colors(self, config : Path):
+        """
+            Read .scss  and .conf files containing only colors
+            and display them in color.
+
+            :param config : Path to desired configuration file
+        """
+        reader = Reader()
+
+        if '.scss' in config.name:
+            print(f'[~~>] {config.name}')
+            Visualise.display_hex_dict(reader.css_style(config))
+        elif '.conf' in config.name:
+            print(f'[~~>] {config.name}')
+            Visualise.display_hex_dict(reader.kitty_config(config))
+        elif '.rasi' in config.name:
+            print(f'[~~>] {config.name}')
+            Visualise.display_hex_dict(reader.rofi_config(config))
+
+if __name__ == "__main__":
+    image_or_config = Path(sys.argv[2])
+    colorscheme = Colorscheme()
+
+    if sys.argv[1] == '-g':
+        colorscheme.generate_colors(image_or_config)
+    elif sys.argv[1] == '-l':
+        colorscheme.list_colors(image_or_config)
