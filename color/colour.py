@@ -5,7 +5,7 @@
 Used mainly to comfortably store information about generated colors.
 """
 
-class Color:
+class Colour:
     """Store color in RGB and HEX format."""
 
     """Identifier of the colour."""
@@ -17,9 +17,9 @@ class Color:
     """Hexadecimal representation of the colour."""
     hex : str
 
-    def __init__(self, id, color):
+    def __init__(self, id, rgb):
         self.id = id
-        self.rgb = color
+        self.rgb = rgb
         self.hex = self.__rgb_to_hex()
 
     def __rgb_to_hex(self):
