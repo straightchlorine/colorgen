@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+from gen.genmanager import GenerationManager
 from pathlib import Path
 
 """Parses the arguments passed by the user."""
@@ -23,6 +24,7 @@ class ArgumentParser:
                 an colour files for given utilities.',
             epilog='Author: Piotr Krzysztof Lis - github.com/straightchlorine')
 
+        # add mutuall exclusive group for config and full config
         self.parser.add_argument('image',
                                  help='Path to the image file',
                                  type=argparse.FileType('r'))
@@ -57,6 +59,14 @@ class ExtractColors:
     def __init__(self):
         parser = ArgumentParser()
         args = parser.args
+
+        configs = None
+        if args.config:
+            configs = GenerationManager(args.config)
+        else:
+            configs = GenerationManager(args.full_config)
+
+        configs.generate()
 
 if __name__ == "__main__":
     extract_colors = ExtractColors()
