@@ -1,9 +1,13 @@
 # Author: Piotr Krzysztof Lis - github.com/straightchlorine
 
-"""Base class for all config generators."""
+from colour.colour import Colour
+
 class ConfigGen:
-    def __init__(self, palette) -> None:
+    """Base class for all config generators."""
+
+    def __init__(self, palette : list[Colour], colorscheme : str) -> None:
         self.palette = palette
+        self.cfg_name = colorscheme
 
     def write(self):
         pass
