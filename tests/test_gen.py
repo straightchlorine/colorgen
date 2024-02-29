@@ -7,6 +7,7 @@ from colour.colour import Colour
 from colour.extract import Extractor
 
 from gen.gen import ConfigGen
+from gen.parsers.awesome import AwesomeGen
 from gen.parsers.kitty import KittyGen
 from gen.parsers.rofi import RofiGen
 
@@ -18,37 +19,44 @@ class TestGen(unittest.TestCase):
     colorscheme : str
 
     def test_kitty(self):
-
+        flag = False
         self.palette = Extractor(self.image).extract()
         self.colorscheme = self.image.stem
-
-        test = False
 
         self.gen = KittyGen(self.palette, self.colorscheme)
         self.gen.write()
 
         if self.gen.filepath.exists():
-            test = True
-
+            flag = True
             #print(self.gen.filepath.read_text())
             self.gen.filepath.unlink()
 
-        self.assertTrue(test)
+        self.assertTrue(flag)
 
     def test_rofi(self):
-
+        flag = False
         self.palette = Extractor(self.image).extract()
         self.colorscheme = self.image.stem
-
-        test = False
 
         self.gen = RofiGen(self.palette, self.colorscheme)
         self.gen.write()
 
         if self.gen.filepath.exists():
-            test = True
-
+            flag = True
             #print(self.gen.filepath.read_text())
             self.gen.filepath.unlink()
+        self.assertTrue(flag)
 
-        self.assertTrue(test)
+    def test_awesome(self):
+        flag = False
+        self.palette = Extractor(self.image).extract()
+        self.colorscheme = self.image.stem
+
+        self.gen = AwesomeGen(self.palette, self.colorscheme)
+        self.gen.write()
+
+        if self.gen.filepath.exists():
+            flag = True
+            #print(self.gen.filepath.read_text())
+            self.gen.filepath.unlink()
+        self.assertTrue(flag)
