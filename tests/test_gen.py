@@ -28,7 +28,7 @@ class TestGen(unittest.TestCase):
 
         if self.gen.filepath.exists():
             flag = True
-            #print(self.gen.filepath.read_text())
+            # print(self.gen.filepath.read_text())
             self.gen.filepath.unlink()
 
         self.assertTrue(flag)
@@ -43,7 +43,7 @@ class TestGen(unittest.TestCase):
 
         if self.gen.filepath.exists():
             flag = True
-            #print(self.gen.filepath.read_text())
+            # print(self.gen.filepath.read_text())
             self.gen.filepath.unlink()
         self.assertTrue(flag)
 
@@ -57,6 +57,6 @@ class TestGen(unittest.TestCase):
 
         if self.gen.filepath.exists():
             flag = True
-            #print(self.gen.filepath.read_text())
+            # print(self.gen.filepath.read_text())
             self.gen.filepath.unlink()
         self.assertTrue(flag)
