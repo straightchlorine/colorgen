@@ -62,6 +62,9 @@ class AwesomeGen(ConfigGen):
             theme = theme.replace(colour.id, colour.hex)
 
         with open(self.filepath, 'w') as awesome_colors:
+            awesome_colors.write('---')
+            awesome_colors.write(f'-- {self.filepath.stem}')
+            awesome_colors.write('---')
             awesome_colors.write(theme)
 
     def write(self):
