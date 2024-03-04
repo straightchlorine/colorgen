@@ -64,3 +64,14 @@ class Colour:
         <id> <coloured_output> <hex>
         """
         print('{:<15}{:^10}{:>9}'.format(self.id, self.__coloured_output(), self.__hex))
+
+    def __eq__(self, __value: object) -> bool:
+        if isinstance(__value, Colour):
+            return self.id == __value.id and self.rgb == __value.rgb
+        return False
+
+    def __ne__(self, __value: object) -> bool:
+        return not self.__eq__(__value)
+
+    def __str__(self) -> str:
+        return f'Colour({self.id}, {self.hex})'
