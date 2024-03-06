@@ -20,7 +20,7 @@ class TestGen(unittest.TestCase):
 
     def test_kitty(self):
         flag = False
-        self.palette = Extractor(self.image).extract()
+        self.palette = Extractor(self.image, 'dark').extract()
         self.colorscheme = self.image.stem
 
         self.gen = KittyGen(self.palette, self.colorscheme)
@@ -35,7 +35,7 @@ class TestGen(unittest.TestCase):
 
     def test_rofi(self):
         flag = False
-        self.palette = Extractor(self.image).extract()
+        self.palette = Extractor(self.image, 'dark').extract()
         self.colorscheme = self.image.stem
 
         self.gen = RofiGen(self.palette, self.colorscheme)
@@ -49,7 +49,7 @@ class TestGen(unittest.TestCase):
 
     def test_awesome(self):
         flag = False
-        self.palette = Extractor(self.image).extract()
+        self.palette = Extractor(self.image, 'dark').extract()
         self.colorscheme = self.image.stem
 
         self.gen = AwesomeGen(self.palette, self.colorscheme)
