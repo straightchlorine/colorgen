@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
 import argparse
-from gen.genmanager import GenerationManager
 from pathlib import Path
+
+from gen.genmanager import GenerationManager
 
 """Parses the arguments passed by the user."""
 class ArgumentParser:
@@ -27,7 +28,7 @@ class ArgumentParser:
         # add mutuall exclusive group for config and full config
         self.parser.add_argument('image',
                                  help='Path to the image file',
-                                 type=argparse.FileType('r'))
+                                 type=lambda p: Path(p).absolute())
 
         self.parser.add_argument('--theme', '-t',
                                  help='Choose the theme: dark or light',
@@ -60,11 +61,8 @@ class ExtractColors:
         parser = ArgumentParser()
         args = parser.args
 
-        configs = None
-        if args.config:
-            configs = GenerationManager(args.config)
-        else:
-            configs = GenerationManager(args.full_config)
+        cfg = args.config if args.config else args.full_config
+        configs = GenerationManager(args.image, cfg)
 
         configs.generate()
 
