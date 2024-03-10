@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# Author: Piotr Krzysztof Lis - github.com/straightchlorine
 
 import argparse
 from pathlib import Path

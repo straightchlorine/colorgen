@@ -1,5 +1,8 @@
+# Author: Piotr Krzysztof Lis - github.com/straightchlorine
+
 from pathlib import Path
 from colour.extract import Extractor
+
 from gen.parsers.awesome import AwesomeGen
 from gen.parsers.kitty import KittyGen
 from gen.parsers.rofi import RofiGen
