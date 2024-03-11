@@ -6,12 +6,25 @@ from pathlib import Path
 from colour.colour import Colour
 
 class AwesomeGen(ConfigGen):
-    """Generates colorcheme for AwesomeWM."""
+    """
+    Generates a color scheme for AwesomeWM.
+
+    Attributes:
+        palette (list[Colour]): The color palette to generate the scheme.
+        colorscheme (str): Name of the color scheme.
+
+    Methods:
+        __init__(palette, colorscheme): Initializes the AwesomeGen instance.
+        write(): Writes the generated palette into the AwesomeWM config file.
+    """
 
     def __init__(self, palette : list[Colour], colorscheme : str) -> None:
-        """Initializes required resources.
+        """
+        Initialize the AwesomeGen instance.
 
-        Defines names for the files and ensures that required paths exist.
+        Args:
+            palette (list[Colour]): The color palette to generate the scheme.
+            colorscheme (str): Name of the color scheme.
         """
         super().__init__(palette, colorscheme)
         self.config_path = Path.joinpath(
@@ -21,7 +34,9 @@ class AwesomeGen(ConfigGen):
         self.check_directory()
 
     def __write_config(self):
-        """Write generated palette into AwesomeWM config file."""
+        """
+        Write the generated palette into the AwesomeWM config file.
+        """
         theme = """local beautiful = require('beautiful')
         local theme = {}
 
