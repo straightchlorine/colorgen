@@ -95,3 +95,36 @@ class TestGen(unittest.TestCase):
 
         self.assertTrue(flag)
 
+    def test_apply_awesome(self):
+        self.palette = Extractor(self.image, 'dark').extract()
+        self.colorscheme = self.image.stem
+
+        self.gen = AwesomeGen(self.palette, self.colorscheme)
+        self.gen.config_path = Path.joinpath(Path.cwd(), 
+                                'tests', 'cfg', 'theme.lua')
+
+        # save the original config
+        with open(self.gen.config_path, 'r') as wm_cfg:
+            backup = wm_cfg.readlines()
+
+        self.gen.apply()
+
+        # read the changes 
+        with open(self.gen.config_path, 'r') as wm_cfg:
+            lines = wm_cfg.readlines()
+
+        # restore the original config
+        with open(self.gen.config_path, 'w') as wm_cfg:
+            for line in backup:
+                wm_cfg.write(line)
+        
+        flag = False
+        times = 0
+        for line in lines:
+            if "dofile(os.getenv('HOME') .. '/.config/awesome/theme/colors/" + self.gen.filename + "')" in line:
+                times += 1
+
+        if times == 1:
+            flag = True
+
+        self.assertTrue(flag)
