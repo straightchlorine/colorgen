@@ -34,7 +34,7 @@ class KittyGen(ConfigGen):
         self.filepath = Path.joinpath(self.colors_path, self.filename)
         self.check_directory()
 
-    def __write_config(self):
+    def _write_config(self):
         """
         Write the generated palette into the kitty config file.
         """
@@ -49,26 +49,9 @@ class KittyGen(ConfigGen):
         The file is saved in:
         $HOME/.config/kitty/colors/colors-kitty-<image_name>.conf.
         """
-        self.__write_config()
+        self._write_config()
 
-    def __theme_present(self, lines : list[str]) -> bool:
-        """
-            Check if the theme is already present in the config file. Generates
-            present flag.
-
-            Args:
-                lines (list[str]): The lines of the config file, starting
-                from the colour section.
-
-            Returns:
-                bool: True if the theme is present, False otherwise.
-        """
-        for line in lines:
-            if self.filename in line:
-                return True
-        return False
-
-    def __line_check(self, line : str, present : bool) -> tuple[str, bool]:
+    def _line_check(self, line : str, present : bool) -> tuple[str, bool]:
         """
             Checks the line within the colour section. The outside loop is not
             broken only if the line is empty or contains include.
@@ -95,37 +78,11 @@ class KittyGen(ConfigGen):
         else:
             return ('include colors/' + self.filename + '\n', True)
 
-    def __reserve_space(self, start : int, lines : list[str]) -> list[str]:
-        """
-            Reserve space for the new theme in the config file or uncomment it
-            if present.
-
-            Args:
-                start (int): The line to start from.
-                lines (list[str]): The lines of the config file.
-
-            Returns:
-                list[str]: The modified lines of the config file.
-        """
-        present = self.__theme_present(lines[start:])
-        for i in range(start, len(lines)):
-            lines[i], flag = self.__line_check(lines[i + 1], present)
-            if flag: break
-        return lines
-
-    def __file_edit(self, lines : list[str]) -> list[str]:
-        """
-            Edits the config file to include the new theme.
-
-            Args:
-                lines (list[str]): The lines of the original config file.
-
-            Returns:
-                list[str]: The modified lines of the config file.
-        """
+    def _file_edit(self, lines : list[str]) -> list[str]:
         for index, line in enumerate(lines):
             if '#: Color scheme {{{' in line:
-                lines = self.__reserve_space(index + 1, lines)
+                lines = self._reserve_space(index + 1, lines)
+                break
         return lines
 
     def apply(self):
@@ -134,7 +91,7 @@ class KittyGen(ConfigGen):
         """
         with open(self.config_path, 'r') as kitty_config:
             lines = kitty_config.readlines()
-            lines = self.__file_edit(lines)
+            lines = self._file_edit(lines)
 
         with open(self.config_path, 'w') as kitty_config:
             for line in lines:
