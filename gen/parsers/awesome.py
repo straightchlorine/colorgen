@@ -27,13 +27,15 @@ class AwesomeGen(ConfigGen):
             colorscheme (str): Name of the color scheme.
         """
         super().__init__(palette, colorscheme)
-        self.config_path = Path.joinpath(
+        self.colors_path = Path.joinpath(
                 Path.home(), '.config', 'awesome', 'theme', 'themes')
+        self.config_path = Path.joinpath(
+                Path.home(), '.config', 'awesome', 'theme', 'theme.lua')
         self.filename = str(colorscheme) + '.lua'
-        self.filepath = Path.joinpath(self.config_path, self.filename)
+        self.filepath = Path.joinpath(self.colors_path, self.filename)
         self.check_directory()
 
-    def __write_config(self):
+    def _write_config(self):
         """
         Write the generated palette into the AwesomeWM config file.
         """
@@ -88,4 +90,48 @@ class AwesomeGen(ConfigGen):
         The file is saved in:
         $HOME/.config/awesome/theme/themes/<image-name>.lua
         """
-        self.__write_config()
+        self._write_config()
+
+    def _line_check(self, line : str, present : bool) -> tuple[str, bool]:
+        if line in ['\n', '\r\n']:
+                return ('', False)
+
+        if self.filename in line and 'dofile' in line:
+            if '--' in line:
+                return (line[2:], False)
+            elif '-- ' in line:
+                return (line[3:], False)
+            else:
+                return (line, False)
+
+        if 'theme' in line and not 'theme.' in line:
+            if '--' in line or '-- ' in line:
+                return (line, False)
+            else:
+                return ('-- ' + line, False)
+
+        if present:
+            return ('\n', True)
+        else:
+            cfg = f"local theme = dofile(os.getenv('HOME') .. '/.config/awesome/theme/colors/{self.filename}')\n"
+            return (cfg, True)
+
+    def _file_edit(self, lines : list[str]) -> list[str]:
+        for i, line in enumerate(lines):
+            if 'local theme' in line:
+                lines = self._reserve_space(i, lines)
+                break
+        return lines
+
+    def apply(self):
+        """
+            Apply the generated palette to the AwesomeWM config file.
+        """
+        super().apply()
+        with open(self.config_path, 'r') as wm_config:
+            lines = wm_config.readlines()
+            lines = self._file_edit(lines)
+
+        with open(self.config_path, 'w') as wm_config:
+            for line in lines:
+                wm_config.write(line)
