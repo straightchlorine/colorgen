@@ -116,13 +116,6 @@ class AwesomeGen(ConfigGen):
             cfg = f"local theme = dofile(os.getenv('HOME') .. '/.config/awesome/theme/colors/{self.filename}')\n"
             return (cfg, True)
 
-    def _file_edit(self, lines : list[str]) -> list[str]:
-        for i, line in enumerate(lines):
-            if 'local theme' in line:
-                lines = self._reserve_space(i, lines)
-                break
-        return lines
-
     def apply(self):
         """
             Apply the generated palette to the AwesomeWM config file.
@@ -130,7 +123,7 @@ class AwesomeGen(ConfigGen):
         super().apply()
         with open(self.config_path, 'r') as wm_config:
             lines = wm_config.readlines()
-            lines = self._file_edit(lines)
+            lines = self._file_edit(lines, 'local theme')
 
         with open(self.config_path, 'w') as wm_config:
             for line in lines:
