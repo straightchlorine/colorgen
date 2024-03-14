@@ -128,3 +128,37 @@ class TestGen(unittest.TestCase):
             flag = True
 
         self.assertTrue(flag)
+
+    def test_apply_rofi(self):
+        self.palette = Extractor(self.image, 'dark').extract()
+        self.colorscheme = self.image.stem
+
+        self.gen = RofiGen(self.palette, self.colorscheme)
+        self.gen.config_path = Path.joinpath(Path.cwd(), 
+                                'tests', 'cfg', 'colors.rasi')
+
+        # save the original config
+        with open(self.gen.config_path, 'r') as rofi_cfg:
+            backup = rofi_cfg.readlines()
+
+        self.gen.apply()
+
+        # read the changes 
+        with open(self.gen.config_path, 'r') as rofi_cfg:
+            lines = rofi_cfg.readlines()
+
+        # restore the original config
+        with open(self.gen.config_path, 'w') as rofi_cfg:
+            for line in backup:
+                rofi_cfg.write(line)
+        
+        flag = False
+        times = 0
+        for line in lines:
+            if f'@import "~/.config/rofi/colors/{self.gen.filename}"' in line:
+                times += 1
+
+        if times == 1:
+            flag = True
+
+        self.assertTrue(flag)
