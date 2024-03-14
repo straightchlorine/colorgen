@@ -83,11 +83,11 @@ class ConfigGen:
         """
         present = self._theme_present(lines[start:])
         for i in range(start, len(lines)):
-            lines[i], flag = self._line_check(lines[i + 1], present)
+            lines[i], flag = self._line_check(lines[i], present)
             if flag: break
         return lines
 
-    def _file_edit(self, lines : list[str]) -> list[str]:
+    def _file_edit(self, lines : list[str], pattern : str) -> list[str]:
         """
             Edits the config file to include the new theme.
 
@@ -97,6 +97,10 @@ class ConfigGen:
             Returns:
                 list[str]: The modified lines of the config file.
         """
+        for i, line in enumerate(lines):
+            if pattern in line:
+                lines = self._reserve_space(i, lines)
+                break
         return lines
 
     def apply(self):
