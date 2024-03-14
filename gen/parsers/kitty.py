@@ -78,20 +78,13 @@ class KittyGen(ConfigGen):
         else:
             return ('include colors/' + self.filename + '\n', True)
 
-    def _file_edit(self, lines : list[str]) -> list[str]:
-        for index, line in enumerate(lines):
-            if '#: Color scheme {{{' in line:
-                lines = self._reserve_space(index + 1, lines)
-                break
-        return lines
-
     def apply(self):
         """
             Apply the generated palette to the kitty config file.
         """
         with open(self.config_path, 'r') as kitty_config:
             lines = kitty_config.readlines()
-            lines = self._file_edit(lines)
+            lines = self._file_edit(lines, '#: Color scheme {{{')
 
         with open(self.config_path, 'w') as kitty_config:
             for line in lines:
