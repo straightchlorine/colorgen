@@ -28,11 +28,11 @@ class KittyGen(ConfigGen):
         super().__init__(palette, colorscheme)
         self.config_path = Path.joinpath(
             Path.home(), '.config', 'kitty', 'kitty.conf')
-        self.colors_path = Path.joinpath(
+        self.colors_dir = Path.joinpath(
             Path.home(), '.config', 'kitty', 'colors')
         self.filename = str(colorscheme) + '.conf'
-        self.filepath = Path.joinpath(self.colors_path, self.filename)
-        self.check_directory()
+        self.filepath = Path.joinpath(self.colors_dir, self.filename)
+        self._check_directory()
 
     def _write_config(self):
         """
@@ -51,7 +51,7 @@ class KittyGen(ConfigGen):
         """
         self._write_config()
 
-    def _line_check(self, line : str, present : bool) -> tuple[str, bool]:
+    def _edit_section(self, line : str, present : bool) -> tuple[str, bool]:
         """
             Checks the line within the colour section. The outside loop is not
             broken only if the line is empty or contains include.
@@ -74,7 +74,7 @@ class KittyGen(ConfigGen):
             return (line if '#' in line else '#' + line, False)
 
         if present:
-            return ('\n', True)
+            return (line, True)
         else:
             return ('include colors/' + self.filename + '\n', True)
 
@@ -84,7 +84,7 @@ class KittyGen(ConfigGen):
         """
         with open(self.config_path, 'r') as kitty_config:
             lines = kitty_config.readlines()
-            lines = self._file_edit(lines, '#: Color scheme {{{')
+            lines = self._file_edit(lines, 'include colors/')
 
         with open(self.config_path, 'w') as kitty_config:
             for line in lines:
