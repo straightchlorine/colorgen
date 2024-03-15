@@ -8,22 +8,66 @@ class ConfigNotFoundException(Exception):
         super().__init__(f'{message} - configuration file not found.')
 
 class ConfigGen:
-    """Base class for all config generators."""
+    """
+    Base class for config generators
 
-    colors_path : Path
+    Attributes:
+        colors_dir (Path): Directory for storing generated colorschemes.
+        config_path (Path): Path to the configuration file.
+        filename (str): Name of the generated file.
+        filepath (Path): Path to the generated file.
+        palette (list[Colour]): The color palette to generate the scheme.
+        colorscheme (str): Name of the color scheme.
+
+    Methods:
+        __init__(palette, colorscheme): Initializes the AwesomeGen instance.
+        write(): Writes the generated palette into the AwesomeWM config file.
+    """
+
+    colors_dir : Path
+    """Directory for storing generated colorschemes."""
+
     config_path : Path
+    """Path to the configuration file."""
+
     filename : str
+    """Name of the generated file."""
+
+    filepath : Path
+    """Path to the generated file."""
+
+    palette : list[Colour]
+    """The color palette to generate the scheme."""
+
+    colorscheme : str
+    """Name of the color scheme."""
 
     def __init__(self, palette : list[Colour], colorscheme : str) -> None:
+        """
+        Initialize the basic ConfigGen instance.
+
+        Args:
+            palette (list[Colour]): The color palette to generate the scheme.
+            colorscheme (str): Name of the colorscheme.
+        """
         self.palette = palette
         self.cfg_name = colorscheme
 
-    def check_directory(self):
-        """Check if the directory exists, if not create it."""
-        if not self.colors_path.exists():
-            self.colors_path.mkdir(parents=True, exist_ok=True)
+    def _check_directory(self):
+        """
+        Check if the directory for storing generated colorschemes
+        exists, if not create it.
+        """
+        if not self.colors_dir.exists():
+            self.colors_dir.mkdir(parents=True, exist_ok=True)
 
     def __check_config(self):
+        """
+        Check if the configuration file inside config_path attribute exists.
+
+        Raises:
+            ConfigNotFoundException: If the file does not exist.
+        """
         if not self.config_path.exists():
             raise ConfigNotFoundException(str(self.config_path))
 
@@ -37,7 +81,7 @@ class ConfigGen:
         """Write generated palette into config file."""
         pass
 
-    def _theme_present(self, lines : list[str]) -> bool:
+    def _is_theme_present(self, lines : list[str]) -> bool:
         """
             Check if the theme is already present in the config file. Generates
             present flag.
@@ -54,7 +98,17 @@ class ConfigGen:
                 return True
         return False
 
-    def _line_check(self, line : str, present : bool) -> tuple[str, bool]:
+    def __reserve_space(self, start : int, pattern : str, lines : list[str]):
+        for i in range(start, len(lines)):
+            if i == len(lines) - 1:
+                lines.append('insert')
+                break
+            elif not pattern in lines[i] and pattern in lines[i - 1]:
+                lines.insert(i, 'insert')
+                break
+        return lines
+
+    def _edit_section(self, line : str, present : bool) -> tuple[str, bool]:
         """
             Check whether the iterator is still within theme section of
             a given configuration file or outside it.
@@ -69,7 +123,11 @@ class ConfigGen:
         """
         return(line, present)
 
-    def _reserve_space(self, start : int, lines : list[str]) -> list[str]:
+    def __insert_config(self,
+        lines : list[str],
+        pattern : str,
+        start : int
+    ) -> list[str]:
         """
             Reserve space for the new theme in the config file or uncomment it
             if present.
@@ -81,30 +139,34 @@ class ConfigGen:
             Returns:
                 list[str]: The modified lines of the config file.
         """
-        present = self._theme_present(lines[start:])
+        present = self._is_theme_present(lines[start:])
+        lines = self.__reserve_space(start, pattern, lines)
         for i in range(start, len(lines)):
-            lines[i], flag = self._line_check(lines[i], present)
-            if flag: break
+            lines[i], flag = self._edit_section(lines[i], present)
+            if flag: 
+                break
         return lines
 
     def _file_edit(self, lines : list[str], pattern : str) -> list[str]:
         """
-            Edits the config file to include the new theme.
+            Edit the config file to provide generated theme.
 
             Args:
                 lines (list[str]): The lines of the original config file.
+                pattern (str): Pattern marking the beginning of the theme
+                section.
 
             Returns:
                 list[str]: The modified lines of the config file.
         """
         for i, line in enumerate(lines):
             if pattern in line:
-                lines = self._reserve_space(i, lines)
+                lines = self.__insert_config(lines, pattern, i)
                 break
         return lines
 
     def apply(self):
         """
-            Apply the generated palette to appropriate config file.
+            Apply the  palette to the config file.
         """
         self.__check_config()
