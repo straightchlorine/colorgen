@@ -92,10 +92,11 @@ class ExtractColors:
         parser = ArgumentParser()
         args = parser.args
 
-        configs = GenerationManager(args.image,
-                                    args.config if
-                                        args.config else args.full_config,
-                                    args.theme)
+        configs = GenerationManager(
+                args.image,
+                args.config if args.config else args.full_config,
+                args.theme,
+                args.apply)
         configs.generate()
 
 if __name__ == "__main__":
