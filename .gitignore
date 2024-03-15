@@ -4,3 +4,4 @@ __pycache__
 *.lua
 *.conf
 *test.sh
+tests/cfg
