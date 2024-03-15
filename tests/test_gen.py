@@ -7,6 +7,7 @@ from colour.colour import Colour
 from colour.extract import Extractor
 
 from gen.gen import ConfigGen
+from gen.genmanager import GenerationManager
 from gen.parsers.awesome import AwesomeGen
 from gen.parsers.kitty import KittyGen
 from gen.parsers.rofi import RofiGen
@@ -63,35 +64,26 @@ class TestGen(unittest.TestCase):
 
     def test_apply_kitty(self):
         self.palette = Extractor(self.image, 'dark').extract()
-        self.colorscheme = self.image.stem
-
-        self.gen = KittyGen(self.palette, self.colorscheme)
-        self.gen.config_path = Path.joinpath(Path.cwd(), 
+        self.gen = KittyGen(self.palette, self.image.stem)
+        self.gen.config_path = Path.joinpath(Path.cwd(),
                                 'tests', 'cfg', 'kitty.conf')
-
         # save the original config
         with open(self.gen.config_path, 'r') as kitty_cfg:
-            backup = kitty_cfg.readlines()
+            original_config = kitty_cfg.readlines()
 
         self.gen.apply()
 
-        # read the changes 
         with open(self.gen.config_path, 'r') as kitty_cfg:
-            lines = kitty_cfg.readlines()
+            modified_config = kitty_cfg.readlines()
 
         # restore the original config
         with open(self.gen.config_path, 'w') as kitty_cfg:
-            for line in backup:
-                kitty_cfg.write(line)
+            kitty_cfg.writelines(original_config)
 
         flag = False
-        times = 0
-        for line in lines:
-            if 'include colors/' + self.gen.filename in line:
-                times += 1
-
-        if times == 1:
-            flag = True
+        for i, line in enumerate(modified_config):
+            if 'include colors/' + self.gen.filename in line and modified_config[i + 1] == '\n':
+                flag = True
 
         self.assertTrue(flag)
 
@@ -100,32 +92,25 @@ class TestGen(unittest.TestCase):
         self.colorscheme = self.image.stem
 
         self.gen = AwesomeGen(self.palette, self.colorscheme)
-        self.gen.config_path = Path.joinpath(Path.cwd(), 
+        self.gen.config_path = Path.joinpath(Path.cwd(),
                                 'tests', 'cfg', 'theme.lua')
-
         # save the original config
         with open(self.gen.config_path, 'r') as wm_cfg:
-            backup = wm_cfg.readlines()
+            original_config = wm_cfg.readlines()
 
         self.gen.apply()
 
-        # read the changes 
         with open(self.gen.config_path, 'r') as wm_cfg:
-            lines = wm_cfg.readlines()
+            modified_config = wm_cfg.readlines()
 
         # restore the original config
         with open(self.gen.config_path, 'w') as wm_cfg:
-            for line in backup:
-                wm_cfg.write(line)
-        
-        flag = False
-        times = 0
-        for line in lines:
-            if "dofile(os.getenv('HOME') .. '/.config/awesome/theme/colors/" + self.gen.filename + "')" in line:
-                times += 1
+            wm_cfg.writelines(original_config)
 
-        if times == 1:
-            flag = True
+        flag = False
+        for i, line in enumerate(modified_config):
+            if 'dofile' in line and self.gen.filename in line and modified_config[i + 1] == '\n':
+                flag = True
 
         self.assertTrue(flag)
 
@@ -134,31 +119,51 @@ class TestGen(unittest.TestCase):
         self.colorscheme = self.image.stem
 
         self.gen = RofiGen(self.palette, self.colorscheme)
-        self.gen.config_path = Path.joinpath(Path.cwd(), 
+        self.gen.config_path = Path.joinpath(Path.cwd(),
                                 'tests', 'cfg', 'colors.rasi')
-
         # save the original config
         with open(self.gen.config_path, 'r') as rofi_cfg:
-            backup = rofi_cfg.readlines()
+            original_config = rofi_cfg.readlines()
 
         self.gen.apply()
 
-        # read the changes 
         with open(self.gen.config_path, 'r') as rofi_cfg:
-            lines = rofi_cfg.readlines()
+            modified_config = rofi_cfg.readlines()
 
         # restore the original config
         with open(self.gen.config_path, 'w') as rofi_cfg:
-            for line in backup:
-                rofi_cfg.write(line)
-        
-        flag = False
-        times = 0
-        for line in lines:
-            if f'@import "~/.config/rofi/colors/{self.gen.filename}"' in line:
-                times += 1
+            rofi_cfg.writelines(original_config)
 
-        if times == 1:
-            flag = True
+        flag = False
+        for line in modified_config:
+            if '@import' in line and self.gen.filename in line:
+                flag = True
+
+        self.assertTrue(flag)
+
+    def test_general(self):
+
+        configs = GenerationManager(self.image, True, 'dark', True)
+        configs.generate()
+        gens = [
+            KittyGen(configs.palette, configs.colorscheme),
+            AwesomeGen(configs.palette, configs.colorscheme),
+            RofiGen(configs.palette, configs.colorscheme),
+        ]
+
+        gens[0].config_path = Path.joinpath(Path.cwd(),
+                                'tests', 'cfg', 'kitty.conf')
+        gens[1].config_path = Path.joinpath(Path.cwd(),
+                                'tests', 'cfg', 'theme.lua')
+        gens[2].config_path = Path.joinpath(Path.cwd(),
+                                'tests', 'cfg', 'colors.rasi')
+        flag = True
+        for gen in gens:
+            if not gen.filepath.exists():
+                flag = False
+
+        for gen in gens:
+            if gen.filepath.exists():
+                gen.filepath.unlink()
 
         self.assertTrue(flag)
