@@ -27,13 +27,13 @@ class AwesomeGen(ConfigGen):
             colorscheme (str): Name of the color scheme.
         """
         super().__init__(palette, colorscheme)
-        self.colors_path = Path.joinpath(
+        self.colors_dir = Path.joinpath(
                 Path.home(), '.config', 'awesome', 'theme', 'themes')
         self.config_path = Path.joinpath(
                 Path.home(), '.config', 'awesome', 'theme', 'theme.lua')
         self.filename = str(colorscheme) + '.lua'
-        self.filepath = Path.joinpath(self.colors_path, self.filename)
-        self.check_directory()
+        self.filepath = Path.joinpath(self.colors_dir, self.filename)
+        self._check_directory()
 
     def _write_config(self):
         """
@@ -72,6 +72,7 @@ class AwesomeGen(ConfigGen):
         theme.notification_fg_normal   = 'color10'
         theme.notification_fg_selected = 'color11'
 
+        return theme
         -- vim: filetype=lua:expandtab:shiftwidth=2:tabstop=4:softtabstop=2:textwidth=80"""
 
         theme = re.sub(r'^(?!\s*$)\s*', '', theme, flags=re.MULTILINE)
@@ -92,7 +93,7 @@ class AwesomeGen(ConfigGen):
         """
         self._write_config()
 
-    def _line_check(self, line : str, present : bool) -> tuple[str, bool]:
+    def _edit_section(self, line : str, present : bool) -> tuple[str, bool]:
         if line in ['\n', '\r\n']:
                 return ('', False)
 
@@ -111,9 +112,9 @@ class AwesomeGen(ConfigGen):
                 return ('-- ' + line, False)
 
         if present:
-            return ('\n', True)
+            return (line, True)
         else:
-            cfg = f"local theme = dofile(os.getenv('HOME') .. '/.config/awesome/theme/colors/{self.filename}')\n"
+            cfg = f"local theme = dofile(os.getenv('HOME') .. '/.config/awesome/theme/themes/{self.filename}')\n"
             return (cfg, True)
 
     def apply(self):
