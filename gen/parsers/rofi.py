@@ -13,13 +13,13 @@ class RofiGen(ConfigGen):
         Defines names for the files and ensures that required paths exist.
         """
         super().__init__(palette, colorscheme)
-        self.colors_path = Path.joinpath(
+        self.colors_dir = Path.joinpath(
                 Path.home(), '.config', 'rofi', 'colors')
         self.config_path = Path.joinpath(
                 Path.home(), '.config', 'rofi', 'launchers', 'type-4', 'shared', 'colors.rasi')
         self.filename = str(colorscheme) + '.rasi'
-        self.filepath = Path.joinpath(self.colors_path, self.filename)
-        self.check_directory()
+        self.filepath = Path.joinpath(self.colors_dir, self.filename)
+        self._check_directory()
 
     def _write_config(self):
         """Write generated palette into rofi config file."""
@@ -51,7 +51,7 @@ class RofiGen(ConfigGen):
         """
         self._write_config()
 
-    def _line_check(self, line : str, present : bool) -> tuple[str, bool]:
+    def _edit_section(self, line : str, present : bool) -> tuple[str, bool]:
         if line in ['\n', '\r\n']:
                 return ('', False)
 
@@ -75,7 +75,7 @@ class RofiGen(ConfigGen):
                 return ('/* ' + line + ' */\n', False)
 
         if present:
-            return ('\n', True)
+            return (line, True)
         else:
             cfg = f'@import "~/.config/rofi/colors/{self.filename}"\n'
             return (cfg, True)
@@ -84,9 +84,7 @@ class RofiGen(ConfigGen):
         super().apply()
         with open(self.config_path, 'r') as rofi_config:
             lines = rofi_config.readlines()
-            lines.append('insert\n')
             lines = self._file_edit(lines, '@import')
-
 
         with open(self.config_path, 'w') as rofi_config:
             for line in lines:
