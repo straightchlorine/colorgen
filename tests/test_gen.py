@@ -143,8 +143,7 @@ class TestGen(unittest.TestCase):
 
     def test_general(self):
 
-        configs = GenerationManager(self.image, True, 'dark', True)
-        configs.generate()
+        configs = GenerationManager(self.image, True, 'dark', False)
         gens = [
             KittyGen(configs.palette, configs.colorscheme),
             AwesomeGen(configs.palette, configs.colorscheme),
@@ -157,6 +156,9 @@ class TestGen(unittest.TestCase):
                                 'tests', 'cfg', 'theme.lua')
         gens[2].config_path = Path.joinpath(Path.cwd(),
                                 'tests', 'cfg', 'colors.rasi')
+
+        configs.generate()
+
         flag = True
         for gen in gens:
             if not gen.filepath.exists():
