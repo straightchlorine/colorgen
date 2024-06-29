@@ -5,6 +5,7 @@ from ..gen import ConfigGen
 from pathlib import Path
 from colour.colour import Colour
 
+
 class AwesomeGen(ConfigGen):
     """
     Generates a color scheme for AwesomeWM.
@@ -18,7 +19,7 @@ class AwesomeGen(ConfigGen):
         write(): Writes the generated palette into the AwesomeWM config file.
     """
 
-    def __init__(self, palette : list[Colour], colorscheme : str) -> None:
+    def __init__(self, palette: list[Colour], colorscheme: str) -> None:
         """
         Initialize the AwesomeGen instance.
 
@@ -28,10 +29,12 @@ class AwesomeGen(ConfigGen):
         """
         super().__init__(palette, colorscheme)
         self.colors_dir = Path.joinpath(
-                Path.home(), '.config', 'awesome', 'theme', 'themes')
+            Path.home(), ".config", "awesome", "theme", "themes"
+        )
         self.config_path = Path.joinpath(
-                Path.home(), '.config', 'awesome', 'theme', 'theme.lua')
-        self.filename = str(colorscheme) + '.lua'
+            Path.home(), ".config", "awesome", "theme", "theme.lua"
+        )
+        self.filename = str(colorscheme) + ".lua"
         self.filepath = Path.joinpath(self.colors_dir, self.filename)
         self._check_directory()
 
@@ -75,14 +78,14 @@ class AwesomeGen(ConfigGen):
         return theme
         -- vim: filetype=lua:expandtab:shiftwidth=2:tabstop=4:softtabstop=2:textwidth=80"""
 
-        theme = re.sub(r'^(?!\s*$)\s*', '', theme, flags=re.MULTILINE)
+        theme = re.sub(r"^(?!\s*$)\s*", "", theme, flags=re.MULTILINE)
         for colour in reversed(self.palette):
             theme = theme.replace(colour.id, colour.hex)
 
-        with open(self.filepath, 'w') as awesome_colors:
-            awesome_colors.write('---\n')
-            awesome_colors.write(f'-- {self.filename}\n')
-            awesome_colors.write('---\n\n')
+        with open(self.filepath, "w") as awesome_colors:
+            awesome_colors.write("---\n")
+            awesome_colors.write(f"-- {self.filename}\n")
+            awesome_colors.write("---\n\n")
             awesome_colors.write(theme)
 
     def write(self):
@@ -93,23 +96,23 @@ class AwesomeGen(ConfigGen):
         """
         self._write_config()
 
-    def _edit_section(self, line : str, present : bool) -> tuple[str, bool]:
-        if line in ['\n', '\r\n']:
-                return ('', False)
+    def _edit_section(self, line: str, present: bool) -> tuple[str, bool]:
+        if line in ["\n", "\r\n"]:
+            return ("", False)
 
-        if self.filename in line and 'dofile' in line:
-            if '--' in line:
+        if self.filename in line and "dofile" in line:
+            if "--" in line:
                 return (line[2:], False)
-            elif '-- ' in line:
+            elif "-- " in line:
                 return (line[3:], False)
             else:
                 return (line, False)
 
-        if 'theme' in line and not 'theme.' in line:
-            if '--' in line or '-- ' in line:
+        if "theme" in line and "theme." not in line:
+            if "--" in line or "-- " in line:
                 return (line, False)
             else:
-                return ('-- ' + line, False)
+                return ("-- " + line, False)
 
         if present:
             return (line, True)
@@ -119,13 +122,13 @@ class AwesomeGen(ConfigGen):
 
     def apply(self):
         """
-            Apply the generated palette to the AwesomeWM config file.
+        Apply the generated palette to the AwesomeWM config file.
         """
         super().apply()
-        with open(self.config_path, 'r') as wm_config:
+        with open(self.config_path, "r") as wm_config:
             lines = wm_config.readlines()
-            lines = self._file_edit(lines, 'local theme')
+            lines = self._file_edit(lines, "local theme")
 
-        with open(self.config_path, 'w') as wm_config:
+        with open(self.config_path, "w") as wm_config:
             for line in lines:
                 wm_config.write(line)
