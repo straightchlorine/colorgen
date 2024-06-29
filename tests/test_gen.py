@@ -12,16 +12,16 @@ from gen.parsers.awesome import AwesomeGen
 from gen.parsers.kitty import KittyGen
 from gen.parsers.rofi import RofiGen
 
-class TestGen(unittest.TestCase):
 
-    image : Path = Path.joinpath(Path.cwd(), 'tests', 'test.png')
-    palette : list[Colour]
-    gen : ConfigGen
-    colorscheme : str
+class TestGen(unittest.TestCase):
+    image: Path = Path.joinpath(Path.cwd(), "tests", "test.png")
+    palette: list[Colour]
+    gen: ConfigGen
+    colorscheme: str
 
     def test_kitty(self):
         flag = False
-        self.palette = Extractor(self.image, 'dark').extract()
+        self.palette = Extractor(self.image, "dark").extract()
         self.colorscheme = self.image.stem
 
         self.gen = KittyGen(self.palette, self.colorscheme)
@@ -36,7 +36,7 @@ class TestGen(unittest.TestCase):
 
     def test_rofi(self):
         flag = False
-        self.palette = Extractor(self.image, 'dark').extract()
+        self.palette = Extractor(self.image, "dark").extract()
         self.colorscheme = self.image.stem
 
         self.gen = RofiGen(self.palette, self.colorscheme)
@@ -50,7 +50,7 @@ class TestGen(unittest.TestCase):
 
     def test_awesome(self):
         flag = False
-        self.palette = Extractor(self.image, 'dark').extract()
+        self.palette = Extractor(self.image, "dark").extract()
         self.colorscheme = self.image.stem
 
         self.gen = AwesomeGen(self.palette, self.colorscheme)
@@ -63,99 +63,99 @@ class TestGen(unittest.TestCase):
         self.assertTrue(flag)
 
     def test_apply_kitty(self):
-        self.palette = Extractor(self.image, 'dark').extract()
+        self.palette = Extractor(self.image, "dark").extract()
         self.gen = KittyGen(self.palette, self.image.stem)
-        self.gen.config_path = Path.joinpath(Path.cwd(),
-                                'tests', 'cfg', 'kitty.conf')
+        self.gen.config_path = Path.joinpath(Path.cwd(), "tests", "cfg", "kitty.conf")
         # save the original config
-        with open(self.gen.config_path, 'r') as kitty_cfg:
+        with open(self.gen.config_path, "r") as kitty_cfg:
             original_config = kitty_cfg.readlines()
 
         self.gen.apply()
 
-        with open(self.gen.config_path, 'r') as kitty_cfg:
+        with open(self.gen.config_path, "r") as kitty_cfg:
             modified_config = kitty_cfg.readlines()
 
         # restore the original config
-        with open(self.gen.config_path, 'w') as kitty_cfg:
+        with open(self.gen.config_path, "w") as kitty_cfg:
             kitty_cfg.writelines(original_config)
 
         flag = False
         for i, line in enumerate(modified_config):
-            if 'include colors/' + self.gen.filename in line and modified_config[i + 1] == '\n':
+            if (
+                "include colors/" + self.gen.filename in line
+                and modified_config[i + 1] == "\n"
+            ):
                 flag = True
 
         self.assertTrue(flag)
 
     def test_apply_awesome(self):
-        self.palette = Extractor(self.image, 'dark').extract()
+        self.palette = Extractor(self.image, "dark").extract()
         self.colorscheme = self.image.stem
 
         self.gen = AwesomeGen(self.palette, self.colorscheme)
-        self.gen.config_path = Path.joinpath(Path.cwd(),
-                                'tests', 'cfg', 'theme.lua')
+        self.gen.config_path = Path.joinpath(Path.cwd(), "tests", "cfg", "theme.lua")
         # save the original config
-        with open(self.gen.config_path, 'r') as wm_cfg:
+        with open(self.gen.config_path, "r") as wm_cfg:
             original_config = wm_cfg.readlines()
 
         self.gen.apply()
 
-        with open(self.gen.config_path, 'r') as wm_cfg:
+        with open(self.gen.config_path, "r") as wm_cfg:
             modified_config = wm_cfg.readlines()
 
         # restore the original config
-        with open(self.gen.config_path, 'w') as wm_cfg:
+        with open(self.gen.config_path, "w") as wm_cfg:
             wm_cfg.writelines(original_config)
 
         flag = False
         for i, line in enumerate(modified_config):
-            if 'dofile' in line and self.gen.filename in line and modified_config[i + 1] == '\n':
+            if (
+                "dofile" in line
+                and self.gen.filename in line
+                and modified_config[i + 1] == "\n"
+            ):
                 flag = True
 
         self.assertTrue(flag)
 
     def test_apply_rofi(self):
-        self.palette = Extractor(self.image, 'dark').extract()
+        self.palette = Extractor(self.image, "dark").extract()
         self.colorscheme = self.image.stem
 
         self.gen = RofiGen(self.palette, self.colorscheme)
-        self.gen.config_path = Path.joinpath(Path.cwd(),
-                                'tests', 'cfg', 'colors.rasi')
+        self.gen.config_path = Path.joinpath(Path.cwd(), "tests", "cfg", "colors.rasi")
         # save the original config
-        with open(self.gen.config_path, 'r') as rofi_cfg:
+        with open(self.gen.config_path, "r") as rofi_cfg:
             original_config = rofi_cfg.readlines()
 
         self.gen.apply()
 
-        with open(self.gen.config_path, 'r') as rofi_cfg:
+        with open(self.gen.config_path, "r") as rofi_cfg:
             modified_config = rofi_cfg.readlines()
 
         # restore the original config
-        with open(self.gen.config_path, 'w') as rofi_cfg:
+        with open(self.gen.config_path, "w") as rofi_cfg:
             rofi_cfg.writelines(original_config)
 
         flag = False
         for line in modified_config:
-            if '@import' in line and self.gen.filename in line:
+            if "@import" in line and self.gen.filename in line:
                 flag = True
 
         self.assertTrue(flag)
 
     def test_general(self):
-
-        configs = GenerationManager(self.image, True, 'dark', False)
+        configs = GenerationManager(self.image, True, "dark", False)
         gens = [
             KittyGen(configs.palette, configs.colorscheme),
             AwesomeGen(configs.palette, configs.colorscheme),
             RofiGen(configs.palette, configs.colorscheme),
         ]
 
-        gens[0].config_path = Path.joinpath(Path.cwd(),
-                                'tests', 'cfg', 'kitty.conf')
-        gens[1].config_path = Path.joinpath(Path.cwd(),
-                                'tests', 'cfg', 'theme.lua')
-        gens[2].config_path = Path.joinpath(Path.cwd(),
-                                'tests', 'cfg', 'colors.rasi')
+        gens[0].config_path = Path.joinpath(Path.cwd(), "tests", "cfg", "kitty.conf")
+        gens[1].config_path = Path.joinpath(Path.cwd(), "tests", "cfg", "theme.lua")
+        gens[2].config_path = Path.joinpath(Path.cwd(), "tests", "cfg", "colors.rasi")
 
         configs.generate()
 

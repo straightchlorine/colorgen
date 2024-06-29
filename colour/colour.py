@@ -2,17 +2,18 @@
 
 """Basic object storing all required information about given colour."""
 
+
 class Colour:
     """Store color in RGB and HEX format."""
 
     """Identifier of the colour."""
-    id : str
+    id: str
 
     """RGB representation of the colour."""
-    __rgb : tuple
+    __rgb: tuple
 
     """Hexadecimal representation of the colour."""
-    __hex : str
+    __hex: str
 
     # rgb getters
     @property
@@ -42,7 +43,7 @@ class Colour:
 
     def __rgb_to_hex(self, rgb):
         """Convert RGB tuple to HEX string."""
-        return '#%02x%02x%02x' % rgb
+        return "#%02x%02x%02x" % tuple(rgb)
 
     def __init__(self, id, rgb):
         self.id = id
@@ -54,16 +55,16 @@ class Colour:
 
         Return four spaces with background set to stored colour.
         """
-        color_code = f'\033[48;2;{self.__rgb[0]};{self.__rgb[1]};{self.__rgb[2]}m'
-        reset_code = '\033[0m'
-        return f'{color_code}    {reset_code}'
+        color_code = f"\033[48;2;{self.__rgb[0]};{self.__rgb[1]};{self.__rgb[2]}m"
+        reset_code = "\033[0m"
+        return f"{color_code}    {reset_code}"
 
     def display(self):
         """Display information about stored colour.
 
         <id> <coloured_output> <hex>
         """
-        print('{:<15}{:^10}{:>9}'.format(self.id, self.__coloured_output(), self.__hex))
+        print("{:<15}{:^10}{:>9}".format(self.id, self.__coloured_output(), self.__hex))
 
     def __eq__(self, __value: object) -> bool:
         if isinstance(__value, Colour):
@@ -74,4 +75,4 @@ class Colour:
         return not self.__eq__(__value)
 
     def __str__(self) -> str:
-        return f'Colour({self.id}, {self.hex})'
+        return f"Colour({self.id}, {self.hex})"
