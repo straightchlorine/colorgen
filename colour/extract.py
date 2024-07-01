@@ -95,10 +95,9 @@ class Extractor:
             palette_size=19,
             resize=True,
             mode="MC",
+            out_filename="palette.png",
             sort_mode="luminence",
         )
-
-        palette.to_csv(filename="palette.csv")
 
         # the palette is sorted by luminance, thus simply reversing it will
         # provide lighter colors
