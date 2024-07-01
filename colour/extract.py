@@ -77,7 +77,7 @@ class Extractor:
         # cursor
         colours.append(Colour(self.COLOUR_ID[2], palette[len(palette) - 2].rgb))
 
-        for i, index in enumerate(range(len(palette) - 3, 1, -1), start=4):
+        for i, index in enumerate(range(1, len(palette) - 3), start=3):
             colours.append(Colour(self.COLOUR_ID[i], palette[index].rgb))
 
         return colours
