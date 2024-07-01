@@ -42,18 +42,22 @@ class AwesomeGen(ConfigGen):
         """
         Write the generated palette into the AwesomeWM config file.
         """
-        theme = """local beautiful = require('beautiful')
+        theme = """
         local theme = {}
 
+        theme.border_normal            = 'background'
+        theme.border_focus             = 'foreground'
+        theme.border_marked            = 'cursor'
+
         theme.bg_normal                = 'background'
-        theme.bg_focus                 = 'color1'
-        theme.bg_urgent                = 'color2'
-        theme.bg_minimize              = 'color3'
+        theme.bg_focus                 = 'color3'
+        theme.bg_urgent                = 'color4'
+        theme.bg_minimize              = 'color5'
 
         theme.fg_normal                = 'foreground'
-        theme.fg_focus                 = 'color15'
-        theme.fg_urgent                = 'color14'
-        theme.fg_minimize              = 'color13'
+        theme.fg_focus                 = 'color0'
+        theme.fg_urgent                = 'color1'
+        theme.fg_minimize              = 'color2'
 
         theme.taglist_bg_focus         = 'color6'
         theme.taglist_bg_urgent        = 'color7'
@@ -61,19 +65,19 @@ class AwesomeGen(ConfigGen):
         theme.taglist_bg_emtpy         = 'color9'
         theme.taglist_bg_volatile      = 'color10'
 
-        theme.taglist_fg_focus         = 'color11'
-        theme.taglist_fg_urgent        = 'color12'
-        theme.taglist_fg_occupied      = 'color13'
+        theme.taglist_fg_focus         = 'background'
+        theme.taglist_fg_occupied      = 'color15'
         theme.taglist_fg_emtpy         = 'color14'
-        theme.taglist_fg_volatile      = 'color15'
+        theme.taglist_fg_urgent        = 'color13'
+        theme.taglist_fg_volatile      = 'color12'
 
-        theme.notification_bg          = 'color4'
-        theme.notification_bg_normal   = 'color5'
-        theme.notification_bg_selected = 'color6'
+        theme.notification_bg          = 'background'
+        theme.notification_bg_normal   = 'color8'
+        theme.notification_bg_selected = 'color12'
 
-        theme.notification_fg          = 'color9'
-        theme.notification_fg_normal   = 'color10'
-        theme.notification_fg_selected = 'color11'
+        theme.notification_fg          = 'foreground'
+        theme.notification_fg_normal   = 'color0'
+        theme.notification_fg_selected = 'color4'
 
         return theme
         -- vim: filetype=lua:expandtab:shiftwidth=2:tabstop=4:softtabstop=2:textwidth=80"""
