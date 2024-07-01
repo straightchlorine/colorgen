@@ -71,13 +71,13 @@ class Extractor:
         colours = []
 
         # background
-        colours.append(Colour(self.COLOUR_ID[0], palette[0].rgb))
+        colours.append(Colour(self.COLOUR_ID[0], palette[len(palette) - 1].rgb))
         # foreground
-        colours.append(Colour(self.COLOUR_ID[1], palette[len(palette) - 1].rgb))
+        colours.append(Colour(self.COLOUR_ID[1], palette[0].rgb))
         # cursor
-        colours.append(Colour(self.COLOUR_ID[2], palette[len(palette) - 2].rgb))
+        colours.append(Colour(self.COLOUR_ID[2], palette[1].rgb))
 
-        for i, index in enumerate(range(len(palette) - 3, 1, -1), start=4):
+        for i, index in enumerate(range(len(palette) - 3, 1, -1), start=3):
             colours.append(Colour(self.COLOUR_ID[i], palette[index].rgb))
 
         return colours
