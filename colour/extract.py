@@ -77,7 +77,7 @@ class Extractor:
         # cursor
         colours.append(Colour(self.COLOUR_ID[2], palette[len(palette) - 2].rgb))
 
-        for i, index in enumerate(range(1, len(palette) - 3), start=3):
+        for i, index in enumerate(range(len(palette) - 3, 1, -1), start=4):
             colours.append(Colour(self.COLOUR_ID[i], palette[index].rgb))
 
         return colours
@@ -91,7 +91,7 @@ class Extractor:
         """
 
         palette = extract_colors(
-            image=self.image, palette_size=19, resize=True, sort_mode="frequency"
+            image=self.image, palette_size=19, resize=True, sort_mode="luminence"
         )
 
         # the palette is sorted by luminance, thus simply reversing it will
