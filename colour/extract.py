@@ -91,7 +91,7 @@ class Extractor:
         """
 
         palette = extract_colors(
-            image=self.image, palette_size=19, resize=True, sort_mode="frequency"
+            image=self.image, palette_size=19, resize=True, sort_mode="luminance"
         )
 
         # the palette is sorted by luminance, thus simply reversing it will
