@@ -98,6 +98,8 @@ class Extractor:
             sort_mode="luminence",
         )
 
+        palette.to_csv(filename="palette.csv")
+
         # the palette is sorted by luminance, thus simply reversing it will
         # provide lighter colors
         if self.theme == "light":
