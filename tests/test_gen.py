@@ -18,13 +18,14 @@ class TestGen(unittest.TestCase):
     palette: list[Colour]
     gen: ConfigGen
     colorscheme: str
+    theme: str = "dark"
 
     def test_kitty(self):
         flag = False
         self.palette = Extractor(self.image, "dark").extract()
         self.colorscheme = self.image.stem
 
-        self.gen = KittyGen(self.palette, self.colorscheme)
+        self.gen = KittyGen(self.palette, self.colorscheme, self.theme)
         self.gen.write()
 
         if self.gen.filepath.exists():
@@ -39,7 +40,7 @@ class TestGen(unittest.TestCase):
         self.palette = Extractor(self.image, "dark").extract()
         self.colorscheme = self.image.stem
 
-        self.gen = RofiGen(self.palette, self.colorscheme)
+        self.gen = RofiGen(self.palette, self.colorscheme, self.theme)
         self.gen.write()
 
         if self.gen.filepath.exists():
@@ -53,7 +54,7 @@ class TestGen(unittest.TestCase):
         self.palette = Extractor(self.image, "dark").extract()
         self.colorscheme = self.image.stem
 
-        self.gen = AwesomeGen(self.palette, self.colorscheme)
+        self.gen = AwesomeGen(self.palette, self.colorscheme, self.theme)
         self.gen.write()
 
         if self.gen.filepath.exists():
@@ -64,7 +65,7 @@ class TestGen(unittest.TestCase):
 
     def test_apply_kitty(self):
         self.palette = Extractor(self.image, "dark").extract()
-        self.gen = KittyGen(self.palette, self.image.stem)
+        self.gen = KittyGen(self.palette, self.image.stem, self.theme)
         self.gen.config_path = Path.joinpath(Path.cwd(), "tests", "cfg", "kitty.conf")
         # save the original config
         with open(self.gen.config_path, "r") as kitty_cfg:
@@ -93,7 +94,7 @@ class TestGen(unittest.TestCase):
         self.palette = Extractor(self.image, "dark").extract()
         self.colorscheme = self.image.stem
 
-        self.gen = AwesomeGen(self.palette, self.colorscheme)
+        self.gen = AwesomeGen(self.palette, self.colorscheme, self.theme)
         self.gen.config_path = Path.joinpath(Path.cwd(), "tests", "cfg", "theme.lua")
         # save the original config
         with open(self.gen.config_path, "r") as wm_cfg:
@@ -123,7 +124,7 @@ class TestGen(unittest.TestCase):
         self.palette = Extractor(self.image, "dark").extract()
         self.colorscheme = self.image.stem
 
-        self.gen = RofiGen(self.palette, self.colorscheme)
+        self.gen = RofiGen(self.palette, self.colorscheme, self.theme)
         self.gen.config_path = Path.joinpath(Path.cwd(), "tests", "cfg", "colors.rasi")
         # save the original config
         with open(self.gen.config_path, "r") as rofi_cfg:
@@ -146,11 +147,12 @@ class TestGen(unittest.TestCase):
         self.assertTrue(flag)
 
     def test_general(self):
-        configs = GenerationManager(self.image, True, "dark", False)
+        theme = "dark"
+        configs = GenerationManager(self.image, True, theme, False)
         gens = [
-            KittyGen(configs.palette, configs.colorscheme),
-            AwesomeGen(configs.palette, configs.colorscheme),
-            RofiGen(configs.palette, configs.colorscheme),
+            KittyGen(configs.palette, configs.colorscheme, theme),
+            AwesomeGen(configs.palette, configs.colorscheme, theme),
+            RofiGen(configs.palette, configs.colorscheme, theme),
         ]
 
         gens[0].config_path = Path.joinpath(Path.cwd(), "tests", "cfg", "kitty.conf")
