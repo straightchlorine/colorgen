@@ -19,7 +19,7 @@ class AwesomeGen(ConfigGen):
         write(): Writes the generated palette into the AwesomeWM config file.
     """
 
-    def __init__(self, palette: list[Colour], colorscheme: str) -> None:
+    def __init__(self, palette: list[Colour], colorscheme: str, theme: str) -> None:
         """
         Initialize the AwesomeGen instance.
 
@@ -27,14 +27,16 @@ class AwesomeGen(ConfigGen):
             palette (list[Colour]): The color palette to generate the scheme.
             colorscheme (str): Name of the color scheme.
         """
-        super().__init__(palette, colorscheme)
+        super().__init__(palette, colorscheme, theme)
         self.colors_dir = Path.joinpath(
             Path.home(), ".config", "awesome", "theme", "themes"
         )
         self.config_path = Path.joinpath(
             Path.home(), ".config", "awesome", "theme", "theme.lua"
         )
-        self.filename = str(colorscheme) + ".lua"
+
+        # filename defined in the gen module
+        self.filename = self.filename + ".lua"
         self.filepath = Path.joinpath(self.colors_dir, self.filename)
         self._check_directory()
 
@@ -42,42 +44,47 @@ class AwesomeGen(ConfigGen):
         """
         Write the generated palette into the AwesomeWM config file.
         """
-        theme = """
-        local theme = {}
+        theme = """local theme = {}
+
+        theme.bg_normal                = 'background'
+        theme.fg_normal                = 'foreground'
+
+        theme.bg_focus                 = 'color0'
+        theme.fg_focus                 = 'color8'
+
+        theme.fg_urgent                = 'color1'
+        theme.bg_urgent                = 'color9'
+
+        theme.bg_minimize              = 'color2'
+        theme.fg_minimize              = 'color10'
+
+        theme.taglist_bg_focus         = 'foreground'
+        theme.taglist_fg_focus         = 'background'
+
+        theme.taglist_bg_emtpy         = 'color3'
+        theme.taglist_fg_emtpy         = 'color11'
+
+        theme.taglist_bg_occupied      = 'color4'
+        theme.taglist_fg_occupied      = 'color12'
+
+        theme.taglist_bg_urgent        = 'color5'
+        theme.taglist_fg_urgent        = 'color13'
+
+        theme.taglist_bg_volatile      = 'color6'
+        theme.taglist_fg_volatile      = 'color14'
+
+        theme.notification_bg          = 'background'
+        theme.notification_fg          = 'foreground'
+
+        theme.notification_bg_normal   = 'color2'
+        theme.notification_fg_normal   = 'color10'
+
+        theme.notification_bg_selected = 'color7'
+        theme.notification_fg_selected = 'color15'
 
         theme.border_normal            = 'background'
         theme.border_focus             = 'foreground'
         theme.border_marked            = 'cursor'
-
-        theme.bg_normal                = 'background'
-        theme.bg_focus                 = 'color3'
-        theme.bg_urgent                = 'color4'
-        theme.bg_minimize              = 'color5'
-
-        theme.fg_normal                = 'foreground'
-        theme.fg_focus                 = 'color0'
-        theme.fg_urgent                = 'color1'
-        theme.fg_minimize              = 'color2'
-
-        theme.taglist_bg_focus         = 'color6'
-        theme.taglist_bg_urgent        = 'color7'
-        theme.taglist_bg_occupied      = 'color8'
-        theme.taglist_bg_emtpy         = 'color9'
-        theme.taglist_bg_volatile      = 'color10'
-
-        theme.taglist_fg_focus         = 'background'
-        theme.taglist_fg_occupied      = 'color15'
-        theme.taglist_fg_emtpy         = 'color14'
-        theme.taglist_fg_urgent        = 'color13'
-        theme.taglist_fg_volatile      = 'color12'
-
-        theme.notification_bg          = 'background'
-        theme.notification_bg_normal   = 'color8'
-        theme.notification_bg_selected = 'color12'
-
-        theme.notification_fg          = 'foreground'
-        theme.notification_fg_normal   = 'color0'
-        theme.notification_fg_selected = 'color4'
 
         return theme
         -- vim: filetype=lua:expandtab:shiftwidth=2:tabstop=4:softtabstop=2:textwidth=80"""
