@@ -55,6 +55,7 @@ class GenerationManager:
         """
         self.__image = image
         self.__apply = apply
+        self.__theme = theme
         self.palette = Extractor(self.__image, theme).extract()
         self.colorscheme = self.__image.stem
 
@@ -68,19 +69,19 @@ class GenerationManager:
         gen: ConfigGen
 
         if "kitty" in self.__cfgs:
-            gen = KittyGen(self.palette, self.colorscheme)
+            gen = KittyGen(self.palette, self.colorscheme, self.__theme)
             gen.write()
             if self.__apply:
                 gen.apply()
 
         if "awesome" in self.__cfgs:
-            gen = AwesomeGen(self.palette, self.colorscheme)
+            gen = AwesomeGen(self.palette, self.colorscheme, self.__theme)
             gen.write()
             if self.__apply:
                 gen.apply()
 
         if "rofi" in self.__cfgs:
-            gen = RofiGen(self.palette, self.colorscheme)
+            gen = RofiGen(self.palette, self.colorscheme, self.__theme)
             gen.write()
             if self.__apply:
                 gen.apply()

@@ -18,7 +18,7 @@ class KittyGen(ConfigGen):
         write(): Writes the generated palette into the kitty config file.
     """
 
-    def __init__(self, palette: list[Colour], colorscheme: str) -> None:
+    def __init__(self, palette: list[Colour], colorscheme: str, theme: str) -> None:
         """
         Initialize the KittyGen instance.
 
@@ -26,10 +26,10 @@ class KittyGen(ConfigGen):
             palette (list[Colour]): The color palette to generate the scheme.
             colorscheme (str): Name of the color scheme.
         """
-        super().__init__(palette, colorscheme)
+        super().__init__(palette, colorscheme, theme)
         self.config_path = Path.joinpath(Path.home(), ".config", "kitty", "kitty.conf")
         self.colors_dir = Path.joinpath(Path.home(), ".config", "kitty", "colors")
-        self.filename = str(colorscheme) + ".conf"
+        self.filename = self.filename + ".conf"
         self.filepath = Path.joinpath(self.colors_dir, self.filename)
         self._check_directory()
 

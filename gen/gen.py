@@ -44,7 +44,25 @@ class ConfigGen:
     colorscheme: str
     """Name of the color scheme."""
 
-    def __init__(self, palette: list[Colour], colorscheme: str) -> None:
+    def __normalize_filename(self, filename: str):
+        """
+        Normalize the filename.
+
+        Replaces _ with - and spaces with _ and converts to lowercase.
+
+        Args:
+            filename (str): The filename to normalize.
+        Returns:
+            str: The normalized filename.
+        """
+        normalized = filename.replace(" ", "-").lower()
+
+        if "_" in normalized:
+            return normalized.replace("_", "-")
+
+        return normalized
+
+    def __init__(self, palette: list[Colour], colorscheme: str, theme: str) -> None:
         """
         Initialize the basic ConfigGen instance.
 
@@ -54,6 +72,7 @@ class ConfigGen:
         """
         self.palette = palette
         self.cfg_name = colorscheme
+        self.filename = self.__normalize_filename(colorscheme) + f"-{theme}"
 
     def _check_directory(self):
         """
@@ -140,11 +159,10 @@ class ConfigGen:
         present = self._is_theme_present(lines[start:])
         if not present:
             lines = self.__reserve_space(start, pattern, lines)
-            for i in range(start, len(lines)):
-                lines[i], flag = self._edit_section(lines[i], present)
-                if flag:
-                    break
-            return lines
+        for i in range(start, len(lines)):
+            lines[i], flag = self._edit_section(lines[i], present)
+            if flag:
+                break
         return lines
 
     def _file_edit(self, lines: list[str], pattern: str) -> list[str]:

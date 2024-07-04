@@ -8,12 +8,12 @@ from colour.colour import Colour
 class RofiGen(ConfigGen):
     """Generates colorcheme for rofi."""
 
-    def __init__(self, palette: list[Colour], colorscheme: str) -> None:
+    def __init__(self, palette: list[Colour], colorscheme: str, theme: str) -> None:
         """Initializes required resources.
 
         Defines names for the files and ensures that required paths exist.
         """
-        super().__init__(palette, colorscheme)
+        super().__init__(palette, colorscheme, theme)
         self.colors_dir = Path.joinpath(Path.home(), ".config", "rofi", "colors")
         self.config_path = Path.joinpath(
             Path.home(),
@@ -24,7 +24,7 @@ class RofiGen(ConfigGen):
             "shared",
             "colors.rasi",
         )
-        self.filename = str(colorscheme) + ".rasi"
+        self.filename = self.filename + ".rasi"
         self.filepath = Path.joinpath(self.colors_dir, self.filename)
         self._check_directory()
 
