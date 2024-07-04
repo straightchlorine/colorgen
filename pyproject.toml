@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "colorgen"
+version = "0.1"
+description = "Utility for colorscheme generation."
+authors = ["Piotr Krzysztof Lis <piotrlis555@gmail.com>"]
+license = "GPL-3.0 license"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pylette = "^2.3.0"
+unittest2 = "^1.1.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
