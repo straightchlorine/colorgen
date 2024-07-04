@@ -78,7 +78,7 @@ class Extractor:
             shade_rgb = tuple(
                 int(rgb[j] * (1 - factor) + 255 * factor) for j in range(3)
             )
-        return Colour(id, shade_rgb)
+        return Colour(self.COLOUR_ID[id], shade_rgb)
 
     def __generate_shades(
         self, original_colour: Colour, n: int, m: int = 0
