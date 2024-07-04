@@ -1,0 +1,10 @@
+/* above_the_clouds_dark_orange.rasi */
+* {
+
+	background     : #332021;
+	background-alt : #1a1011;
+	foreground     : #d7684a;
+	selected       : #bd5a43;
+	active         : #a85647;
+	urgent         : #572d27;
+}

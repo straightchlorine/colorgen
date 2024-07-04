@@ -3,9 +3,11 @@
 from colour.colour import Colour
 from pathlib import Path
 
+
 class ConfigNotFoundException(Exception):
-    def __init__(self, message : str):
-        super().__init__(f'{message} - configuration file not found.')
+    def __init__(self, message: str):
+        super().__init__(f"{message} - configuration file not found.")
+
 
 class ConfigGen:
     """
@@ -24,25 +26,43 @@ class ConfigGen:
         write(): Writes the generated palette into the AwesomeWM config file.
     """
 
-    colors_dir : Path
+    colors_dir: Path
     """Directory for storing generated colorschemes."""
 
-    config_path : Path
+    config_path: Path
     """Path to the configuration file."""
 
-    filename : str
+    filename: str
     """Name of the generated file."""
 
-    filepath : Path
+    filepath: Path
     """Path to the generated file."""
 
-    palette : list[Colour]
+    palette: list[Colour]
     """The color palette to generate the scheme."""
 
-    colorscheme : str
+    colorscheme: str
     """Name of the color scheme."""
 
-    def __init__(self, palette : list[Colour], colorscheme : str) -> None:
+    def __normalize_filename(self, filename: str):
+        """
+        Normalize the filename.
+
+        Replaces _ with - and spaces with _ and converts to lowercase.
+
+        Args:
+            filename (str): The filename to normalize.
+        Returns:
+            str: The normalized filename.
+        """
+        normalized = filename.replace(" ", "-").lower()
+
+        if "_" in normalized:
+            return normalized.replace("_", "-")
+
+        return normalized
+
+    def __init__(self, palette: list[Colour], colorscheme: str, theme: str) -> None:
         """
         Initialize the basic ConfigGen instance.
 
@@ -52,6 +72,7 @@ class ConfigGen:
         """
         self.palette = palette
         self.cfg_name = colorscheme
+        self.filename = self.__normalize_filename(colorscheme) + f"-{theme}"
 
     def _check_directory(self):
         """
@@ -81,83 +102,80 @@ class ConfigGen:
         """Write generated palette into config file."""
         pass
 
-    def _is_theme_present(self, lines : list[str]) -> bool:
+    def _is_theme_present(self, lines: list[str]) -> bool:
         """
-            Check if the theme is already present in the config file. Generates
-            present flag.
+        Check if the theme is already present in the config file. Generates
+        present flag.
 
-            Args:
-                lines (list[str]): The lines of the config file, starting
-                from the colour section.
+        Args:
+            lines (list[str]): The lines of the config file, starting
+            from the colour section.
 
-            Returns:
-                bool: True if the theme is present, False otherwise.
+        Returns:
+            bool: True if the theme is present, False otherwise.
         """
         for line in lines:
             if self.filename in line:
                 return True
         return False
 
-    def __reserve_space(self, start : int, pattern : str, lines : list[str]):
+    def __reserve_space(self, start: int, pattern: str, lines: list[str]):
         for i in range(start, len(lines)):
             if i == len(lines) - 1:
-                lines.append('insert')
+                lines.append("insert")
                 break
-            elif not pattern in lines[i] and pattern in lines[i - 1]:
-                lines.insert(i, 'insert')
+            elif pattern in lines[i] and pattern not in lines[i + 1]:
+                lines.insert(i + 1, "insert")
                 break
         return lines
 
-    def _edit_section(self, line : str, present : bool) -> tuple[str, bool]:
+    def _edit_section(self, line: str, present: bool) -> tuple[str, bool]:
         """
-            Check whether the iterator is still within theme section of
-            a given configuration file or outside it.
+        Check whether the iterator is still within theme section of
+        a given configuration file or outside it.
 
-            Args:
-                line (str): The line to check.
-                present (bool): True if the theme is already present.
+        Args:
+            line (str): The line to check.
+            present (bool): True if the theme is already present.
 
-            Retruns:
-                tuple[str, bool]: The line to write and the flag, if True
-                iterator left the theme section.
+        Retruns:
+            tuple[str, bool]: The line to write and the flag, if True
+            iterator left the theme section.
         """
-        return(line, present)
+        return (line, present)
 
-    def __insert_config(self,
-        lines : list[str],
-        pattern : str,
-        start : int
-    ) -> list[str]:
+    def __insert_config(self, lines: list[str], pattern: str, start: int) -> list[str]:
         """
-            Reserve space for the new theme in the config file or uncomment it
-            if present.
+        Reserve space for the new theme in the config file or uncomment it
+        if present.
 
-            Args:
-                start (int): The line to start from.
-                lines (list[str]): The lines of the config file.
+        Args:
+            start (int): The line to start from.
+            lines (list[str]): The lines of the config file.
 
-            Returns:
-                list[str]: The modified lines of the config file.
+        Returns:
+            list[str]: The modified lines of the config file.
         """
         present = self._is_theme_present(lines[start:])
-        lines = self.__reserve_space(start, pattern, lines)
+        if not present:
+            lines = self.__reserve_space(start, pattern, lines)
         for i in range(start, len(lines)):
             lines[i], flag = self._edit_section(lines[i], present)
-            if flag: 
+            if flag:
                 break
         return lines
 
-    def _file_edit(self, lines : list[str], pattern : str) -> list[str]:
+    def _file_edit(self, lines: list[str], pattern: str) -> list[str]:
         """
-            Edit the config file to provide generated theme.
+        Edit the config file to provide generated theme.
 
-            Args:
-                lines (list[str]): The lines of the original config file.
-                pattern (str): Pattern marking the beginning of the theme
-                section.
+        Args:
+            lines (list[str]): The lines of the original config file.
+            pattern (str): Pattern marking the beginning of the theme
+            section.
 
-            Returns:
-                list[str]: The modified lines of the config file.
+        Returns:
+            list[str]: The modified lines of the config file.
         """
         for i, line in enumerate(lines):
             if pattern in line:
@@ -167,6 +185,6 @@ class ConfigGen:
 
     def apply(self):
         """
-            Apply the  palette to the config file.
+        Apply the  palette to the config file.
         """
         self.__check_config()

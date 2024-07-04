@@ -6,6 +6,7 @@ from pathlib import Path
 
 from gen.genmanager import GenerationManager
 
+
 class ArgumentParser:
     """
     ArgumentParser class for parsing command-line arguments.
@@ -17,6 +18,7 @@ class ArgumentParser:
     Methods:
         __init__(): Initializes the ArgumentParser instance.
     """
+
     @property
     def parser(self):
         """
@@ -43,38 +45,51 @@ class ArgumentParser:
         """
 
         self.__parser = argparse.ArgumentParser(
-            description='Creates a colorscheme based on an image and creates \
-                an colour files for given utilities.',
-            epilog='Author: Piotr Krzysztof Lis - github.com/straightchlorine')
+            description="Creates a colorscheme based on an image and creates \
+                an colour files for given utilities.",
+            epilog="Author: Piotr Krzysztof Lis - github.com/straightchlorine",
+        )
 
         group = self.parser.add_mutually_exclusive_group()
-        group.add_argument('--config', '-c',
-                            help='Generate config for a given utilities',
-                            type=str,
-                            choices=['kitty', 'awesome', 'rofi'],
-                            action='extend', nargs='+')
+        group.add_argument(
+            "--config",
+            "-c",
+            help="Generate config for a given utilities",
+            type=str,
+            choices=["kitty", "awesome", "rofi"],
+            action="extend",
+            nargs="+",
+        )
 
-        group.add_argument('--full-config', '-fc',
-                            help='Generatre config for every single \
-                            offered utility',
-                            action='store_true')
+        group.add_argument(
+            "--full-config",
+            "-fc",
+            help="Generatre config for every single \
+                            offered utility",
+            action="store_true",
+        )
 
-        self.parser.add_argument('image',
-                                 help='Path to the image file',
-                                 type=lambda p: Path(p).absolute())
+        self.parser.add_argument(
+            "image", help="Path to the image file", type=lambda p: Path(p).absolute()
+        )
 
-        self.parser.add_argument('--theme', '-t',
-                                 help='Choose the theme: dark or light',
-                                 type=str,
-                                 choices=['dark', 'light'], default='dark')
+        self.parser.add_argument(
+            "--theme",
+            "-t",
+            help="Choose the theme: dark or light",
+            type=str,
+            choices=["dark", "light"],
+            default="dark",
+        )
 
-        self.parser.add_argument('--verbose', '-v',
-                                 help='Enable verbose output',
-                                 action='store_true')
+        self.parser.add_argument(
+            "--verbose", "-v", help="Enable verbose output", action="store_true"
+        )
 
-        self.parser.add_argument('--apply', '-a',
-                                 help='Replace existing colorscheme',
-                                 action='store_true')
+        self.parser.add_argument(
+            "--apply", "-a", help="Replace existing colorscheme", action="store_true"
+        )
+
 
 class ExtractColors:
     """
@@ -93,11 +108,13 @@ class ExtractColors:
         args = parser.args
 
         configs = GenerationManager(
-                args.image,
-                args.config if args.config else args.full_config,
-                args.theme,
-                args.apply)
+            args.image,
+            args.config if args.config else args.full_config,
+            args.theme,
+            args.apply,
+        )
         configs.generate()
+
 
 if __name__ == "__main__":
     extract_colors = ExtractColors()
