@@ -58,12 +58,46 @@ class Extractor:
         self.image = image
         self.theme = theme
 
-    # TODO: At current point is really terrible.
-    # the palette is not properly sorted; either decrease amount of colors
-    # and generate shades of them
-    # or
-    # improve sorting by analysing shades of the colors
-    # leaning towards the first option, less work probably
+    def __shade(
+        self, id: int, original_colour: Colour, factor: float, theme: str
+    ) -> Colour:
+        """
+        Returns a lighter shade of a given colour.
+        Args:
+            id (int): The colour id.
+            original_colour (Colour): The original colour.
+        Returns:
+            list[Colour]: A list of Colour objects i.e. generated shades.
+        """
+        rgb = original_colour.rgb
+
+        # for light theme, make colours darker, for dark, make them brighter
+        if theme == "light":
+            shade_rgb = tuple(int(rgb[j] * (1 - factor)) for j in range(3))
+        else:
+            shade_rgb = tuple(
+                int(rgb[j] * (1 - factor) + 255 * factor) for j in range(3)
+            )
+        return Colour(id, shade_rgb)
+
+    def __generate_shades(
+        self, original_colour: Colour, n: int, m: int = 0
+    ) -> list[Colour]:
+        """
+        Generate n shades of the given colour.
+        Args:
+            original_colour (Colour): The original colour.
+            n (int): Number of shades to generate.
+            m (int): range(m, n), where to start generation.
+        """
+
+        shades = []
+        for i in range(m, n):
+            factor = i / (n - 1)
+            shade = self.__shade(i, original_colour, factor, self.theme)
+            shades.append(shade)
+
+        return shades
 
     def __transform_to_colour_objects(self, palette) -> list[Colour]:
         """
@@ -77,17 +111,18 @@ class Extractor:
         """
         colours = []
 
-        # background
-        colours.append(Colour(self.COLOUR_ID[0], palette[len(palette) - 1].rgb))
-        # foreground
-        colours.append(Colour(self.COLOUR_ID[1], palette[0].rgb))
-        # cursor
-        colours.append(Colour(self.COLOUR_ID[2], palette[1].rgb))
+        if self.theme == "light":
+            colours.append(Colour(self.COLOUR_ID[0], palette[3].rgb))  # bg
+            colours.append(Colour(self.COLOUR_ID[1], palette[0].rgb))  # fg
+            colours.append(Colour(self.COLOUR_ID[2], palette[1].rgb))  # cursor
+            colours.append(Colour(self.COLOUR_ID[3], palette[2].rgb))  # color0
+        elif self.theme == "dark":
+            colours.append(Colour(self.COLOUR_ID[0], palette[0].rgb))  # bg
+            colours.append(Colour(self.COLOUR_ID[1], palette[3].rgb))  # fg
+            colours.append(Colour(self.COLOUR_ID[2], palette[2].rgb))  # cursor
+            colours.append(Colour(self.COLOUR_ID[3], palette[1].rgb))  # color0
 
-        for i, index in enumerate(range(2, len(palette) - 1), start=3):
-            colours.append(Colour(self.COLOUR_ID[i], palette[index].rgb))
-
-        return colours
+        return colours + self.__generate_shades(colours[3], 16, 3)
 
     def extract(self):
         """
@@ -98,16 +133,11 @@ class Extractor:
         """
 
         palette = extract_colors(
-            image=self.image,
-            palette_size=3,
+            image=str(self.image),
+            palette_size=4,
             resize=True,
             mode="MC",
-            sort_mode="luminence",
+            sort_mode="luminance",
         )
-
-        # the palette is sorted by luminance, thus simply reversing it will
-        # provide lighter colors
-        if self.theme == "light":
-            palette = palette[::-1]
 
         return self.__transform_to_colour_objects(palette)
