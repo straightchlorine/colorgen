@@ -1,0 +1,11 @@
+/* mountain-peak-light.rasi */
+* {
+
+	background     : #d7dbe0;
+	background-alt : #869db8;
+	foreground     : #343927;
+	selected       : #6b7d93;
+	active         : #627386;
+	urgent         : #59687a;
+
+}
