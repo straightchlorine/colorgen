@@ -67,3 +67,9 @@ Config creation depends on the utility dedicated parsers within `gen/parsers` fo
 contains logic required to properly handle commenting and uncommenting past themes as well as adding
 new ones. Each parser is a subclass of `ConfigGen` from `gen.gen`, thanks to that amount of work
 required to create a new parser is pretty tiny.
+
+### Plans
+
+* [ ] switching themes using colorgen (maybe using rofi applet)
+* [ ] add nice parser for Wayland window manager
+* [ ] do something with GTK so that thunar/nautilus will look good
