@@ -58,6 +58,13 @@ class Extractor:
         self.image = image
         self.theme = theme
 
+    # TODO: At current point is really terrible.
+    # the palette is not properly sorted; either decrease amount of colors
+    # and generate shades of them
+    # or
+    # improve sorting by analysing shades of the colors
+    # leaning towards the first option, less work probably
+
     def __transform_to_colour_objects(self, palette) -> list[Colour]:
         """
         Transform given palette to a list of Colour objects.
@@ -92,7 +99,7 @@ class Extractor:
 
         palette = extract_colors(
             image=self.image,
-            palette_size=19,
+            palette_size=3,
             resize=True,
             mode="MC",
             sort_mode="luminence",
