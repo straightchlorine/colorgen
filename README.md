@@ -1,6 +1,6 @@
 <h3 align="center">colorgen</h3>
 
-  <p align="center">Effortless image based colorscheme genertaion
+  <p align="center">Effortless image based colorscheme generation.
     <br />
     <br />
     <a href="https://github.com/straightchlorine/awesomewm-basileia/issues">Report Bug</a>
