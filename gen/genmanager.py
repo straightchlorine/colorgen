@@ -49,7 +49,7 @@ class GenerationManager:
         Args:
             image (Path): Path to the image.
             configs (list[str] or bool): List of utility configurations to generate.
-                                        If bool, defaults to True (include all possible configs).
+                            If bool, defaults to True (include all possible configs).
             theme (str): Theme type ('dark' or 'light').
             apply (bool): Whtehr to apply the generated colorscheme.
         """

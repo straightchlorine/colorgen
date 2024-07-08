@@ -1,6 +1,6 @@
 <h3 align="center">colorgen</h3>
 
-  <p align="center">Effortless image based colorscheme genertaion
+  <p align="center">Effortless image based colorscheme generation.
     <br />
     <br />
     <a href="https://github.com/straightchlorine/awesomewm-basileia/issues">Report Bug</a>
@@ -36,21 +36,21 @@ options:
 
 Author: Piotr Krzysztof Lis - github.com/straightchlorine
 ```
-**Important Note:** Configuration files are changed **only** when `-a`(`--apply`) option is given as an argument, so
-**consider backing up your configuration files before running `-a` option!**
+**Important Note:** Configuration files change **only** when `-a`(`--apply`) option is provided as an argument, so
+**consider backing up your configuration files before running `-a` option.**
 
 The configuration was tested only on a modularised configuration, with relatively small files. Thus, if 
-it would be wise to use this option with caution in case your particular config is not handled by the application approprietly.
+it would be wise to use this option with caution in case your particular configuration is not handled by the application appropriately.
 
-By adujusting `_edit_section()` of a parser you can customise it's behaviour.
+By adjusting `_edit_section()` of a parser you can customise its behaviour.
 
-Currently, there are three utilities, for which the software can provide configurations:
+Currently, there are three utilities, for which the software can offer configurations:
 
 * [kitty](https://github.com/kovidgoyal/kitty)
 * [AwesomeWM](https://github.com/awesomeWM/awesome)
 * [Rofi](https://github.com/davatorium/rofi)
 
-Just those three can provide a great visual experience:
+Just those three can give a great visual experience:
 
 
 ![light-theme](./doc/img/theme-light.png "mountain - kitty terminal")
@@ -59,17 +59,17 @@ Just those three can provide a great visual experience:
 ![dark-theme-2](./doc/img/theme-dark.png "shades of red - kitty terminal")
 ![dark-theme-1](./doc/img/rofi-dark.png "shades of red - rofi launcher")
 
-In the future I plan to add more, at the very least for one of the tiling managers for Wayland.
+Plans for the future consist of, at the very least, adding a parser for one of the tiling managers for Wayland.
 
 ### Development
 
-Config creation depends on the utility dedicated parsers within `gen/parsers` folder. Each of them
-contains logic required to properly handle commenting and uncommenting past themes as well as adding
+Configuration generation depends on the utility dedicated parsers within `gen/parsers` folder. Each of them
+provides logic required to properly handle past themes, which stay within the file, and adding
 new ones. Each parser is a subclass of `ConfigGen` from `gen.gen`, thanks to that amount of work
 required to create a new parser is pretty tiny.
 
 ### Plans
 
-* [ ] switching themes using colorgen (maybe using rofi applet)
 * [ ] add nice parser for Wayland window manager
 * [ ] do something with GTK so that thunar/nautilus will look good
+* [ ] switching themes (maybe via rofi applet)
