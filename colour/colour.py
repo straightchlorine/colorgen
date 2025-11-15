@@ -2,77 +2,89 @@
 
 """Basic object storing all required information about given colour."""
 
+from dataclasses import dataclass, field
 
+from exceptions import InvalidColorError
+
+
+@dataclass
 class Colour:
-    """Store color in RGB and HEX format."""
+    """Store color in RGB and HEX format.
 
-    """Identifier of the colour."""
+    Attributes:
+        id: Identifier of the colour (e.g., 'background', 'color1').
+        rgb: RGB representation of the colour as a tuple (r, g, b).
+        hex: Hexadecimal representation of the colour (auto-generated from RGB).
+
+    Raises:
+        InvalidColorError: If RGB values are not in valid range (0-255).
+    """
+
     id: str
+    rgb: tuple[int, int, int]
+    hex: str = field(init=False)
 
-    """RGB representation of the colour."""
-    __rgb: tuple
+    def __post_init__(self) -> None:
+        """Initialize hex value after rgb is set and validate RGB values.
 
-    """Hexadecimal representation of the colour."""
-    __hex: str
+        Raises:
+            InvalidColorError: If RGB values are not in valid range (0-255).
+        """
+        self._validate_rgb(self.rgb)
+        self.hex = self._rgb_to_hex(self.rgb)
 
-    # rgb getters
-    @property
-    def rgb(self):
-        return self.__rgb
+    @staticmethod
+    def _validate_rgb(rgb: tuple[int, int, int]) -> None:
+        """Validate RGB values are in the valid range (0-255).
 
-    @rgb.getter
-    def rgb(self):
-        return self.__rgb
+        Args:
+            rgb: RGB tuple (r, g, b) to validate.
 
-    @rgb.setter
-    def rgb(self, rgb):
-        self.__rgb = rgb
+        Raises:
+            InvalidColorError: If any RGB value is not in range 0-255.
+        """
+        if len(rgb) != 3:
+            raise InvalidColorError(f"RGB must be a 3-tuple, got {len(rgb)} values")
 
-    # hex getters
-    @property
-    def hex(self):
-        return self.__hex
+        for i, value in enumerate(rgb):
+            if not isinstance(value, int):
+                raise InvalidColorError(
+                    f"RGB values must be integers, got {type(value).__name__} for component {i}"
+                )
+            if not 0 <= value <= 255:
+                raise InvalidColorError(
+                    f"RGB value {value} at index {i} is out of range (0-255)"
+                )
 
-    @hex.getter
-    def hex(self):
-        return self.__hex
+    @staticmethod
+    def _rgb_to_hex(rgb: tuple[int, int, int]) -> str:
+        """Convert RGB tuple to HEX string.
 
-    @hex.setter
-    def hex(self, hex):
-        self.__hex = hex
+        Args:
+            rgb: RGB tuple (r, g, b) with values 0-255.
 
-    def __rgb_to_hex(self, rgb):
-        """Convert RGB tuple to HEX string."""
-        return "#%02x%02x%02x" % tuple(rgb)
+        Returns:
+            Hexadecimal color string (e.g., '#ff0000').
+        """
+        return f"#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}"
 
-    def __init__(self, id, rgb):
-        self.id = id
-        self.__rgb = rgb
-        self.__hex = self.__rgb_to_hex(rgb)
-
-    def __coloured_output(self):
+    def _coloured_output(self) -> str:
         """Generate coloured output.
 
-        Return four spaces with background set to stored colour.
+        Returns:
+            Four spaces with background set to stored colour.
         """
-        color_code = f"\033[48;2;{self.__rgb[0]};{self.__rgb[1]};{self.__rgb[2]}m"
+        color_code = f"\033[48;2;{self.rgb[0]};{self.rgb[1]};{self.rgb[2]}m"
         reset_code = "\033[0m"
         return f"{color_code}    {reset_code}"
 
-    def display(self):
+    def display(self) -> None:
         """Display information about stored colour.
 
-        <id> <coloured_output> <hex>
+        Prints: <id> <coloured_output> <hex>
         """
-        print("{:<15}{:^10}{:>9}".format(self.id, self.__coloured_output(), self.__hex))
-
-    def __eq__(self, __value: object) -> bool:
-        if isinstance(__value, Colour):
-            return self.id == __value.id and self.rgb == __value.rgb
-        return False
-
-    def __ne__(self, __value: object) -> bool:
-        return not self.__eq__(__value)
+        print(f"{self.id:<15}{self._coloured_output():^10}{self.hex:>9}")
 
     def __str__(self) -> str:
+        """String representation of Colour."""
         return f"Colour({self.id}, {self.hex})"

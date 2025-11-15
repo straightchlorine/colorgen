@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # Author: Piotr Krzysztof Lis - github.com/straightchlorine
 
+"""Command-line interface for colorgen - colorscheme generation from images."""
+
 import argparse
 from pathlib import Path
 
+from colour.theme import Theme
 from gen.genmanager import GenerationManager
 
 
@@ -91,30 +94,27 @@ class ArgumentParser:
         )
 
 
-class ExtractColors:
+def main() -> None:
     """
-    Main module for the script.
+    Main entry point for colorgen.
 
-    Methods:
-        __init__(): Initializes the ExtractColors instance.
+    Parses command-line arguments and generates color configurations
+    based on the provided image.
     """
+    parser = ArgumentParser()
+    args = parser.args
 
-    def __init__(self):
-        """
-        Initialize the ExtractColors instance, parse command-line arguments,
-        and generate color configurations.
-        """
-        parser = ArgumentParser()
-        args = parser.args
+    # Convert string theme to Theme enum
+    theme = Theme.DARK if args.theme == "dark" else Theme.LIGHT
 
-        configs = GenerationManager(
-            args.image,
-            args.config if args.config else args.full_config,
-            args.theme,
-            args.apply,
-        )
-        configs.generate()
+    configs = GenerationManager(
+        args.image,
+        args.config if args.config else args.full_config,
+        theme,
+        args.apply,
+    )
+    configs.generate()
 
 
 if __name__ == "__main__":
-    extract_colors = ExtractColors()
+    main()

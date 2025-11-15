@@ -80,6 +80,7 @@ class KittyGen(ConfigGen):
         """
         Apply the generated palette to the kitty config file.
         """
+        super().apply()
         with open(self.config_path, "r") as kitty_config:
             lines = kitty_config.readlines()
             lines = self._file_edit(lines, "include colors/")

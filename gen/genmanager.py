@@ -1,9 +1,13 @@
 # Author: Piotr Krzysztof Lis - github.com/straightchlorine
 
+"""Configuration generation manager."""
+
 from pathlib import Path
+from typing import Union
+
 from colour.colour import Colour
 from colour.extract import Extractor
-
+from colour.theme import Theme
 from gen.gen import ConfigGen
 from gen.parsers.awesome import AwesomeGen
 from gen.parsers.kitty import KittyGen
@@ -16,42 +20,32 @@ class GenerationManager:
     for specified utilities based on an image's color palette.
 
     Attributes:
-        __cfgs (list[str]): List of utility configurations to generate.
-        __image (Path): Path to the image.
-        __apply (bool): Whether to apply the generated colorscheme.
-        palette: Extracted color palette from the image.
-        colorscheme (str): Name of the colorscheme.
+        palette: Extracted color palette from the image (18 colors).
+        colorscheme: Name of the colorscheme (derived from image filename).
 
     Methods:
-        __init__(image, configs, theme): Initializes the GenerationManager instance.
-        generate(): Generates color configurations for specified utilities.
+        generate: Generates color configurations for specified utilities.
     """
 
-    """List of configs that are possible to generate."""
-    __cfgs: list[str] = ["kitty", "rofi", "awesome"]
-
-    """Path to the image."""
+    __cfgs: list[str]
     __image: Path
-
-    """Generated colorscheme."""
+    __theme: Theme
+    __apply: bool
     palette: list[Colour]
-
-    """Name of the colorscheme."""
     colorscheme: str
 
-    """Whether to apply the generated colorscheme."""
-    __apply: bool
-
-    def __init__(self, image: Path, configs, theme: str, apply: bool) -> None:
+    def __init__(
+        self, image: Path, configs: Union[list[str], bool], theme: Theme, apply: bool
+    ) -> None:
         """
         Initialize the GenerationManager instance.
 
         Args:
-            image (Path): Path to the image.
-            configs (list[str] or bool): List of utility configurations to generate.
-                            If bool, defaults to True (include all possible configs).
-            theme (str): Theme type ('dark' or 'light').
-            apply (bool): Whtehr to apply the generated colorscheme.
+            image: Path to the image file.
+            configs: List of utility configurations to generate (e.g., ['kitty', 'rofi']).
+                     If True, generates all available configs.
+            theme: Theme type (Theme.DARK or Theme.LIGHT).
+            apply: Whether to apply the generated colorscheme immediately.
         """
         self.__image = image
         self.__apply = apply
@@ -59,8 +53,11 @@ class GenerationManager:
         self.palette = Extractor(self.__image, theme).extract()
         self.colorscheme = self.__image.stem
 
-        if not isinstance(configs, bool):
-            self.__cfgs = configs
+        # Default configs
+        if isinstance(configs, bool) and configs:
+            self.__cfgs = ["kitty", "rofi", "awesome"]
+        else:
+            self.__cfgs = configs if isinstance(configs, list) else []
 
     def generate(self):
         """
