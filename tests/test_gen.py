@@ -1,173 +1,190 @@
-# Author: Piotr Krzysztof Lis - github.com/straightchlorine
+"""Tests for configuration file generators."""
 
-import unittest
 from pathlib import Path
 
-from colour.colour import Colour
-from colour.extract import Extractor
+import pytest
 
-from gen.gen import ConfigGen
+from colour.extract import Extractor
 from gen.genmanager import GenerationManager
 from gen.parsers.awesome import AwesomeGen
 from gen.parsers.kitty import KittyGen
 from gen.parsers.rofi import RofiGen
 
 
-class TestGen(unittest.TestCase):
-    image: Path = Path.joinpath(Path.cwd(), "tests", "test.png")
-    palette: list[Colour]
-    gen: ConfigGen
-    colorscheme: str
-    theme: str = "dark"
+def test_kitty_write(test_image_path: Path) -> None:
+    """Test that KittyGen writes a configuration file."""
+    palette = Extractor(test_image_path, "dark").extract()
+    colorscheme = test_image_path.stem
+    theme = "dark"
 
-    def test_kitty(self):
-        flag = False
-        self.palette = Extractor(self.image, "dark").extract()
-        self.colorscheme = self.image.stem
+    gen = KittyGen(palette, colorscheme, theme)
+    gen.write()
 
-        self.gen = KittyGen(self.palette, self.colorscheme, self.theme)
-        self.gen.write()
+    try:
+        assert gen.filepath.exists()
+        assert gen.filepath.read_text()  # Ensure file has content
+    finally:
+        if gen.filepath.exists():
+            gen.filepath.unlink()
 
-        if self.gen.filepath.exists():
-            flag = True
-            # print(self.gen.filepath.read_text())
-            self.gen.filepath.unlink()
 
-        self.assertTrue(flag)
+def test_rofi_write(test_image_path: Path) -> None:
+    """Test that RofiGen writes a configuration file."""
+    palette = Extractor(test_image_path, "dark").extract()
+    colorscheme = test_image_path.stem
+    theme = "dark"
 
-    def test_rofi(self):
-        flag = False
-        self.palette = Extractor(self.image, "dark").extract()
-        self.colorscheme = self.image.stem
+    gen = RofiGen(palette, colorscheme, theme)
+    gen.write()
 
-        self.gen = RofiGen(self.palette, self.colorscheme, self.theme)
-        self.gen.write()
+    try:
+        assert gen.filepath.exists()
+        assert gen.filepath.read_text()  # Ensure file has content
+    finally:
+        if gen.filepath.exists():
+            gen.filepath.unlink()
 
-        if self.gen.filepath.exists():
-            flag = True
-            # print(self.gen.filepath.read_text())
-            self.gen.filepath.unlink()
-        self.assertTrue(flag)
 
-    def test_awesome(self):
-        flag = False
-        self.palette = Extractor(self.image, "dark").extract()
-        self.colorscheme = self.image.stem
+def test_awesome_write(test_image_path: Path) -> None:
+    """Test that AwesomeGen writes a configuration file."""
+    palette = Extractor(test_image_path, "dark").extract()
+    colorscheme = test_image_path.stem
+    theme = "dark"
 
-        self.gen = AwesomeGen(self.palette, self.colorscheme, self.theme)
-        self.gen.write()
+    gen = AwesomeGen(palette, colorscheme, theme)
+    gen.write()
 
-        if self.gen.filepath.exists():
-            flag = True
-            # print(self.gen.filepath.read_text())
-            self.gen.filepath.unlink()
-        self.assertTrue(flag)
+    try:
+        assert gen.filepath.exists()
+        assert gen.filepath.read_text()  # Ensure file has content
+    finally:
+        if gen.filepath.exists():
+            gen.filepath.unlink()
 
-    def test_apply_kitty(self):
-        self.palette = Extractor(self.image, "dark").extract()
-        self.gen = KittyGen(self.palette, self.image.stem, self.theme)
-        self.gen.config_path = Path.joinpath(Path.cwd(), "tests", "cfg", "kitty.conf")
-        # save the original config
-        with open(self.gen.config_path, "r") as kitty_cfg:
-            original_config = kitty_cfg.readlines()
 
-        self.gen.apply()
+def test_kitty_apply(test_image_path: Path, test_kitty_config: Path) -> None:
+    """Test that KittyGen applies configuration correctly."""
+    palette = Extractor(test_image_path, "dark").extract()
+    colorscheme = test_image_path.stem
+    theme = "dark"
 
-        with open(self.gen.config_path, "r") as kitty_cfg:
-            modified_config = kitty_cfg.readlines()
+    gen = KittyGen(palette, colorscheme, theme)
+    gen.config_path = test_kitty_config
 
-        # restore the original config
-        with open(self.gen.config_path, "w") as kitty_cfg:
-            kitty_cfg.writelines(original_config)
+    # Save original config
+    original_config = test_kitty_config.read_text()
 
-        flag = False
-        for i, line in enumerate(modified_config):
-            if (
-                "include colors/" + self.gen.filename in line
-                and modified_config[i + 1] == "\n"
-            ):
-                flag = True
+    try:
+        gen.apply()
+        modified_config = test_kitty_config.read_text()
 
-        self.assertTrue(flag)
+        # Verify the include statement was added
+        assert f"include colors/{gen.filename}" in modified_config
+        # Verify it's followed by a newline
+        lines = modified_config.splitlines(keepends=True)
+        include_line_found = False
+        for i, line in enumerate(lines):
+            if f"include colors/{gen.filename}" in line:
+                include_line_found = True
+                # Check if next line exists and is a newline
+                if i + 1 < len(lines):
+                    assert lines[i + 1] == "\n"
+                break
+        assert include_line_found
+    finally:
+        # Restore original config
+        test_kitty_config.write_text(original_config)
 
-    def test_apply_awesome(self):
-        self.palette = Extractor(self.image, "dark").extract()
-        self.colorscheme = self.image.stem
 
-        self.gen = AwesomeGen(self.palette, self.colorscheme, self.theme)
-        self.gen.config_path = Path.joinpath(Path.cwd(), "tests", "cfg", "theme.lua")
-        # save the original config
-        with open(self.gen.config_path, "r") as wm_cfg:
-            original_config = wm_cfg.readlines()
+def test_awesome_apply(test_image_path: Path, test_awesome_config: Path) -> None:
+    """Test that AwesomeGen applies configuration correctly."""
+    palette = Extractor(test_image_path, "dark").extract()
+    colorscheme = test_image_path.stem
+    theme = "dark"
 
-        self.gen.apply()
+    gen = AwesomeGen(palette, colorscheme, theme)
+    gen.config_path = test_awesome_config
 
-        with open(self.gen.config_path, "r") as wm_cfg:
-            modified_config = wm_cfg.readlines()
+    # Save original config
+    original_config = test_awesome_config.read_text()
 
-        # restore the original config
-        with open(self.gen.config_path, "w") as wm_cfg:
-            wm_cfg.writelines(original_config)
+    try:
+        gen.apply()
+        modified_config = test_awesome_config.read_text()
 
-        flag = False
-        for i, line in enumerate(modified_config):
-            if (
-                "dofile" in line
-                and self.gen.filename in line
-                and modified_config[i + 1] == "\n"
-            ):
-                flag = True
+        # Verify the dofile statement was added
+        assert "dofile" in modified_config
+        assert gen.filename in modified_config
 
-        self.assertTrue(flag)
+        # Verify it's followed by a newline
+        lines = modified_config.splitlines(keepends=True)
+        dofile_line_found = False
+        for i, line in enumerate(lines):
+            if "dofile" in line and gen.filename in line:
+                dofile_line_found = True
+                # Check if next line exists and is a newline
+                if i + 1 < len(lines):
+                    assert lines[i + 1] == "\n"
+                break
+        assert dofile_line_found
+    finally:
+        # Restore original config
+        test_awesome_config.write_text(original_config)
 
-    def test_apply_rofi(self):
-        self.palette = Extractor(self.image, "dark").extract()
-        self.colorscheme = self.image.stem
 
-        self.gen = RofiGen(self.palette, self.colorscheme, self.theme)
-        self.gen.config_path = Path.joinpath(Path.cwd(), "tests", "cfg", "colors.rasi")
-        # save the original config
-        with open(self.gen.config_path, "r") as rofi_cfg:
-            original_config = rofi_cfg.readlines()
+def test_rofi_apply(test_image_path: Path, test_rofi_config: Path) -> None:
+    """Test that RofiGen applies configuration correctly."""
+    palette = Extractor(test_image_path, "dark").extract()
+    colorscheme = test_image_path.stem
+    theme = "dark"
 
-        self.gen.apply()
+    gen = RofiGen(palette, colorscheme, theme)
+    gen.config_path = test_rofi_config
 
-        with open(self.gen.config_path, "r") as rofi_cfg:
-            modified_config = rofi_cfg.readlines()
+    # Save original config
+    original_config = test_rofi_config.read_text()
 
-        # restore the original config
-        with open(self.gen.config_path, "w") as rofi_cfg:
-            rofi_cfg.writelines(original_config)
+    try:
+        gen.apply()
+        modified_config = test_rofi_config.read_text()
 
-        flag = False
-        for line in modified_config:
-            if "@import" in line and self.gen.filename in line:
-                flag = True
+        # Verify the import statement was added
+        assert "@import" in modified_config
+        assert gen.filename in modified_config
+    finally:
+        # Restore original config
+        test_rofi_config.write_text(original_config)
 
-        self.assertTrue(flag)
 
-    def test_general(self):
-        theme = "dark"
-        configs = GenerationManager(self.image, True, theme, False)
-        gens = [
-            KittyGen(configs.palette, configs.colorscheme, theme),
-            AwesomeGen(configs.palette, configs.colorscheme, theme),
-            RofiGen(configs.palette, configs.colorscheme, theme),
-        ]
+def test_generation_manager(
+    test_image_path: Path,
+    test_kitty_config: Path,
+    test_awesome_config: Path,
+    test_rofi_config: Path,
+) -> None:
+    """Test that GenerationManager creates all configuration files."""
+    theme = "dark"
+    configs = GenerationManager(test_image_path, True, theme, False)
 
-        gens[0].config_path = Path.joinpath(Path.cwd(), "tests", "cfg", "kitty.conf")
-        gens[1].config_path = Path.joinpath(Path.cwd(), "tests", "cfg", "theme.lua")
-        gens[2].config_path = Path.joinpath(Path.cwd(), "tests", "cfg", "colors.rasi")
+    # Create generators with test config paths
+    gens = [
+        KittyGen(configs.palette, configs.colorscheme, theme),
+        AwesomeGen(configs.palette, configs.colorscheme, theme),
+        RofiGen(configs.palette, configs.colorscheme, theme),
+    ]
 
+    gens[0].config_path = test_kitty_config
+    gens[1].config_path = test_awesome_config
+    gens[2].config_path = test_rofi_config
+
+    try:
         configs.generate()
 
-        flag = True
+        # Verify all files were created
         for gen in gens:
-            if not gen.filepath.exists():
-                flag = False
-
+            assert gen.filepath.exists(), f"{gen.filepath} was not created"
+    finally:
+        # Clean up generated files
         for gen in gens:
             if gen.filepath.exists():
                 gen.filepath.unlink()
-
-        self.assertTrue(flag)
