@@ -36,9 +36,6 @@ python = "~3.12"
 pylette = "==5.1.1"
 textual = "^6.6.0"
 pillow = "<11.0"
-scikit-learn = "^1.7.2"
-numpy = "^2.3.4"
-joblib = "^1.5.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^9.0.1"
@@ -54,10 +51,6 @@ pre-commit = "^4.4.0"
 mkdocs = "^1.6.1"
 mkdocs-material = "^9.7.0"
 mkdocstrings = {extras = ["python"], version = "^0.26.1"}
-
-[tool.poetry.group.ml.dependencies]
-mlflow = "^3.6.0"
-optuna = "^4.6.0"
 
 [build-system]
 requires = ["poetry-core"]

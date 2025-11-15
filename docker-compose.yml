@@ -1,0 +1,38 @@
+services:
+  colorgen:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: colorgen:latest
+    container_name: colorgen
+    volumes:
+      # Mount your config directory
+      - ${HOME}/.config:/config
+      # Mount directory for input images and output
+      - ./images:/images
+      - ./output:/output
+    environment:
+      - COLORGEN_VERBOSE=true
+    # Override default command
+    command: /images/example.png --config kitty --theme dark --verbose
+
+  # Development service with hot-reload
+  colorgen-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    image: colorgen:dev
+    container_name: colorgen-dev
+    volumes:
+      - .:/app
+      - ${HOME}/.config:/config
+    environment:
+      - COLORGEN_VERBOSE=true
+      - PYTHONDONTWRITEBYTECODE=1
+    working_dir: /app
+    command: poetry run pytest --cov
+
+volumes:
+  config:
+  output:
