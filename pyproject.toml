@@ -6,7 +6,7 @@ keywords = ["colorscheme", "theme", "terminal", "awesomewm", "kitty", "rofi", "t
 version = "0.2.0"
 requires-python = "==3.12.*"
 
-license = { text = "GPL-3.0-or-later" }
+license = "GPL-3.0-or-later"
 readme = "README.md"
 
 authors = [
@@ -19,17 +19,20 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Intended Audience :: End Users/Desktop",
     "Topic :: Desktop Environment :: Window Managers",
-    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
 ]
 
 homepage = "https://github.com/straightchlorine/colorgen"
 repository = "https://github.com/straightchlorine/colorgen"
 
+dependencies = [
+    "pylette==5.1.1",
+    "textual>=6.6.0",
+    "pillow<11.0",
+]
+
 [project.scripts]
 colorgen = "colorgen:main"
-
-[project.gui-scripts]
-colorgen-tui = "colorgen.tui:main"
+colorgen-tui = "tui:main"
 
 [tool.poetry.dependencies]
 python = "~3.12"
