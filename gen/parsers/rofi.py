@@ -1,8 +1,10 @@
 # Author: Piotr Krzysztof Lis - github.com/straightchlorine
 
-from ..gen import ConfigGen
 from pathlib import Path
+
 from colour.colour import Colour
+
+from ..gen import ConfigGen
 
 
 class RofiGen(ConfigGen):
@@ -28,7 +30,7 @@ class RofiGen(ConfigGen):
         self.filepath = Path.joinpath(self.colors_dir, self.filename)
         self._check_directory()
 
-    def _write_config(self):
+    def _write_config(self) -> None:
         """Write generated palette into rofi config file."""
         colorscheme = {
             "background": self.palette[0].hex,  # background
@@ -46,12 +48,12 @@ class RofiGen(ConfigGen):
             rofi_colors.write("\n")
 
             for id, colour in colorscheme.items():
-                rofi_colors.write("\t{:<14} : {:<7};".format(id, colour) + "\n")
+                rofi_colors.write(f"\t{id:<14} : {colour:<7};" + "\n")
 
             rofi_colors.write("\n")
             rofi_colors.write("}")
 
-    def write(self):
+    def write(self) -> None:
         """Write generated palette into rofi config file.
 
         The file is saved in:
@@ -88,9 +90,9 @@ class RofiGen(ConfigGen):
             cfg = f'@import "~/.config/rofi/colors/{self.filename}"\n'
             return (cfg, True)
 
-    def apply(self):
+    def apply(self) -> None:
         super().apply()
-        with open(self.config_path, "r") as rofi_config:
+        with open(self.config_path) as rofi_config:
             lines = rofi_config.readlines()
             lines = self._file_edit(lines, "@import")
 

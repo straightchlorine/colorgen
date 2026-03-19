@@ -1,7 +1,7 @@
 """Pytest configuration and shared fixtures."""
 
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
 
 import pytest
 from PIL import Image
@@ -64,10 +64,7 @@ def mock_config_dir(tmp_path: Path) -> Generator[Path, None, None]:
     kitty_dir = config_dir / "kitty"
     kitty_dir.mkdir(parents=True)
     (kitty_dir / "kitty.conf").write_text(
-        "# Kitty configuration\n"
-        "font_family Fira Code\n"
-        "# Colors\n"
-        "include colors/default.conf\n"
+        "# Kitty configuration\nfont_family Fira Code\n# Colors\ninclude colors/default.conf\n"
     )
     (kitty_dir / "colors").mkdir()
 
@@ -75,19 +72,13 @@ def mock_config_dir(tmp_path: Path) -> Generator[Path, None, None]:
     awesome_dir = config_dir / "awesome"
     awesome_dir.mkdir(parents=True)
     (awesome_dir / "theme.lua").write_text(
-        "-- Awesome theme\n"
-        "local theme = {}\n"
-        "-- COLORGEN COLORSCHEMES\n"
-        "return theme\n"
+        "-- Awesome theme\nlocal theme = {}\n-- COLORGEN COLORSCHEMES\nreturn theme\n"
     )
 
     # Create rofi config structure
     rofi_dir = config_dir / "rofi"
     rofi_dir.mkdir(parents=True)
-    (rofi_dir / "config.rasi").write_text(
-        "/* Rofi configuration */\n"
-        "/* COLORGEN COLORSCHEMES */\n"
-    )
+    (rofi_dir / "config.rasi").write_text("/* Rofi configuration */\n/* COLORGEN COLORSCHEMES */\n")
 
     yield config_dir
 
@@ -143,7 +134,7 @@ def test_rofi_config(tmp_path: Path) -> Path:
         "/* Rofi configuration */\n"
         "\n"
         "/* COLORGEN COLORSCHEMES */\n"
-        "// @import \"~/.config/rofi/colors/default.rasi\"\n"
+        '// @import "~/.config/rofi/colors/default.rasi"\n'
         "\n"
     )
     return config_file

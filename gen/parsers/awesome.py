@@ -1,9 +1,11 @@
 # Author: Piotr Krzysztof Lis - github.com/straightchlorine
 
 import re
-from ..gen import ConfigGen
 from pathlib import Path
+
 from colour.colour import Colour
+
+from ..gen import ConfigGen
 
 
 class AwesomeGen(ConfigGen):
@@ -28,19 +30,15 @@ class AwesomeGen(ConfigGen):
             colorscheme (str): Name of the color scheme.
         """
         super().__init__(palette, colorscheme, theme)
-        self.colors_dir = Path.joinpath(
-            Path.home(), ".config", "awesome", "theme", "themes"
-        )
-        self.config_path = Path.joinpath(
-            Path.home(), ".config", "awesome", "theme", "theme.lua"
-        )
+        self.colors_dir = Path.joinpath(Path.home(), ".config", "awesome", "theme", "themes")
+        self.config_path = Path.joinpath(Path.home(), ".config", "awesome", "theme", "theme.lua")
 
         # filename defined in the gen module
         self.filename = self.filename + ".lua"
         self.filepath = Path.joinpath(self.colors_dir, self.filename)
         self._check_directory()
 
-    def _write_config(self):
+    def _write_config(self) -> None:
         """
         Write the generated palette into the AwesomeWM config file.
         """
@@ -99,7 +97,7 @@ class AwesomeGen(ConfigGen):
             awesome_colors.write("---\n\n")
             awesome_colors.write(theme)
 
-    def write(self):
+    def write(self) -> None:
         """Write generated palette into AwesomeWM config file.
 
         The file is saved in:
@@ -131,12 +129,12 @@ class AwesomeGen(ConfigGen):
             cfg = f"local theme = dofile(os.getenv('HOME') .. '/.config/awesome/theme/themes/{self.filename}')\n"
             return (cfg, True)
 
-    def apply(self):
+    def apply(self) -> None:
         """
         Apply the generated palette to the AwesomeWM config file.
         """
         super().apply()
-        with open(self.config_path, "r") as wm_config:
+        with open(self.config_path) as wm_config:
             lines = wm_config.readlines()
             lines = self._file_edit(lines, "local theme")
 

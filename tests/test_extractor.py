@@ -90,7 +90,7 @@ class TestExtractor:
         colors_bright = palette[11:19]  # color8 to color15
 
         # For dark theme, bright colors should generally be lighter
-        for normal, bright in zip(colors_normal, colors_bright):
+        for normal, bright in zip(colors_normal, colors_bright, strict=True):
             normal_brightness = sum(normal.rgb) / 3
             bright_brightness = sum(bright.rgb) / 3
             # Bright should generally be lighter (allowing some tolerance)

@@ -6,7 +6,8 @@
 from pathlib import Path
 from typing import ClassVar
 
-from Pylette import Palette, extract_colors
+from Pylette import extract_colors
+from Pylette.src.types import ExtractionMethod
 
 from colour.colour import Colour
 from colour.theme import Theme
@@ -92,13 +93,13 @@ class Extractor:
                 image=str(self.image),
                 palette_size=10,
                 resize=True,
-                mode="KMeans",
+                mode=ExtractionMethod.KM,
                 sort_mode="luminance",
             )
         except Exception as e:
             raise InvalidImageError(f"Failed to extract colors from image: {e}")
 
-        return [tuple(int(x) for x in c.rgb) for c in palette]
+        return [(int(c.rgb[0]), int(c.rgb[1]), int(c.rgb[2])) for c in palette.colors]
 
     def __pick_bg_fg(
         self, colors: list[tuple[int, int, int]]
@@ -148,10 +149,7 @@ class Extractor:
         """
         if not colors:
             # Fallback: generate greys
-            return [
-                (i * 32, i * 32, i * 32)
-                for i in range(1, 9)
-            ]
+            return [(i * 32, i * 32, i * 32) for i in range(1, 9)]
 
         # Sort by hue for diversity
         hue_sorted = sorted(colors, key=lambda c: rgb_to_hsl(c)[0])
@@ -202,9 +200,12 @@ class Extractor:
             return [darken(c, 0.2) for c in normal_colors]
 
     def __build_palette(
-        self, bg: tuple[int, int, int], fg: tuple[int, int, int],
-        cursor: tuple[int, int, int], normal: list[tuple[int, int, int]],
-        bright: list[tuple[int, int, int]]
+        self,
+        bg: tuple[int, int, int],
+        fg: tuple[int, int, int],
+        cursor: tuple[int, int, int],
+        normal: list[tuple[int, int, int]],
+        bright: list[tuple[int, int, int]],
     ) -> list[Colour]:
         """Build the final 18-color palette as Colour objects.
 

@@ -52,9 +52,7 @@ class Colour:
                     f"RGB values must be integers, got {type(value).__name__} for component {i}"
                 )
             if not 0 <= value <= 255:
-                raise InvalidColorError(
-                    f"RGB value {value} at index {i} is out of range (0-255)"
-                )
+                raise InvalidColorError(f"RGB value {value} at index {i} is out of range (0-255)")
 
     @staticmethod
     def _rgb_to_hex(rgb: tuple[int, int, int]) -> str:

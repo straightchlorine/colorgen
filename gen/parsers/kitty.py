@@ -1,8 +1,10 @@
 # Author: Piotr Krzysztof Lis - github.com/straightchlorine
 
-from ..gen import ConfigGen
 from pathlib import Path
+
 from colour.colour import Colour
+
+from ..gen import ConfigGen
 
 
 class KittyGen(ConfigGen):
@@ -34,15 +36,15 @@ class KittyGen(ConfigGen):
         self._include_prefix = "include colors/"
         self._check_directory()
 
-    def _write_config(self):
+    def _write_config(self) -> None:
         """
         Write the generated palette into the kitty config file.
         """
         with open(self.filepath, "w") as kitty_colors:
             for colour in self.palette:
-                kitty_colors.write("{:<12}{:<12}".format(colour.id, colour.hex) + "\n")
+                kitty_colors.write(f"{colour.id:<12}{colour.hex:<12}" + "\n")
 
-    def write(self):
+    def write(self) -> None:
         """Write generated palette into kitty config file.
 
         The file is saved in:
@@ -77,12 +79,12 @@ class KittyGen(ConfigGen):
         else:
             return (self._include_prefix + self.filename + "\n", True)
 
-    def apply(self):
+    def apply(self) -> None:
         """
         Apply the generated palette to the kitty config file.
         """
         super().apply()
-        with open(self.config_path, "r") as kitty_config:
+        with open(self.config_path) as kitty_config:
             lines = kitty_config.readlines()
 
         # Detect include path format: "include ./colors/" vs "include colors/"

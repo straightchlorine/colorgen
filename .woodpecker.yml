@@ -18,7 +18,7 @@ steps:
     image: python:3.12
     commands:
       - pip install poetry
-      - poetry install --no-interaction --no-root --with dev
+      - poetry install --no-interaction --no-root --with docs
       - poetry install --no-interaction
       - poetry run mkdocs build --strict
       - |

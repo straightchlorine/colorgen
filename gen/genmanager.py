@@ -3,7 +3,6 @@
 """Configuration generation manager."""
 
 from pathlib import Path
-from typing import Union
 
 from colour.colour import Colour
 from colour.extract import Extractor
@@ -34,9 +33,7 @@ class GenerationManager:
     palette: list[Colour]
     colorscheme: str
 
-    def __init__(
-        self, image: Path, configs: Union[list[str], bool], theme: Theme, apply: bool
-    ) -> None:
+    def __init__(self, image: Path, configs: list[str] | bool, theme: Theme, apply: bool) -> None:
         """
         Initialize the GenerationManager instance.
 
@@ -59,7 +56,7 @@ class GenerationManager:
         else:
             self.__cfgs = configs if isinstance(configs, list) else []
 
-    def generate(self):
+    def generate(self) -> None:
         """
         Generate color configurations for specified utilities.
         """

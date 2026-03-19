@@ -1,7 +1,8 @@
 # Author: Piotr Krzysztof Lis - github.com/straightchlorine
 
-from colour.colour import Colour
 from pathlib import Path
+
+from colour.colour import Colour
 
 
 class ConfigNotFoundException(Exception):
@@ -44,7 +45,7 @@ class ConfigGen:
     colorscheme: str
     """Name of the color scheme."""
 
-    def __normalize_filename(self, filename: str):
+    def __normalize_filename(self, filename: str) -> str:
         """
         Normalize the filename.
 
@@ -74,7 +75,7 @@ class ConfigGen:
         self.cfg_name = colorscheme
         self.filename = self.__normalize_filename(colorscheme) + f"-{theme}"
 
-    def _check_directory(self):
+    def _check_directory(self) -> None:
         """
         Check if the directory for storing generated colorschemes
         exists, if not create it.
@@ -82,7 +83,7 @@ class ConfigGen:
         if not self.colors_dir.exists():
             self.colors_dir.mkdir(parents=True, exist_ok=True)
 
-    def __check_config(self):
+    def __check_config(self) -> None:
         """
         Check if the configuration file inside config_path attribute exists.
 
@@ -92,13 +93,13 @@ class ConfigGen:
         if not self.config_path.exists():
             raise ConfigNotFoundException(str(self.config_path))
 
-    def _write_config(self):
+    def _write_config(self) -> None:
         """
         Write the generated palette into the appropriate config file.
         """
         pass
 
-    def write(self):
+    def write(self) -> None:
         """Write generated palette into config file."""
         pass
 
@@ -114,12 +115,9 @@ class ConfigGen:
         Returns:
             bool: True if the theme is present, False otherwise.
         """
-        for line in lines:
-            if self.filename in line:
-                return True
-        return False
+        return any(self.filename in line for line in lines)
 
-    def __reserve_space(self, start: int, pattern: str, lines: list[str]):
+    def __reserve_space(self, start: int, pattern: str, lines: list[str]) -> list[str]:
         for i in range(start, len(lines)):
             if i == len(lines) - 1:
                 lines.append("insert")
@@ -183,8 +181,8 @@ class ConfigGen:
                 break
         return lines
 
-    def apply(self):
+    def apply(self) -> None:
         """
-        Apply the  palette to the config file.
+        Apply the palette to the config file.
         """
         self.__check_config()

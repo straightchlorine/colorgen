@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
 from colour.extract import Extractor
 from gen.genmanager import GenerationManager
 from gen.parsers.awesome import AwesomeGen
