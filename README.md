@@ -1,227 +1,76 @@
 # colorgen
 
-<div align="center">
+Generate terminal colorschemes from images for kitty, AwesomeWM, and rofi.
 
-**Effortless image-based colorscheme generation with ML-powered recommendations**
+**Repo:** [Codeberg](https://codeberg.org/piotrkrzysztof/colorgen) (primary) | [GitHub](https://github.com/straightchlorine/colorgen) (mirror)
 
-[Features](#features) •
-[Installation](#installation) •
-[Usage](#usage) •
-[Documentation](#documentation) •
-[Contributing](#contributing)
+[![CI](https://ci.codextechnologies.org/api/badges/4/status.svg)](https://ci.codextechnologies.org/repos/4)
+[![PyPI version](https://badge.fury.io/py/colorgen.svg)](https://pypi.org/project/colorgen/)
+[![Total Downloads](https://static.pepy.tech/badge/colorgen)](https://pepy.tech/project/colorgen)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/colorgen)](https://pypi.org/project/colorgen/)
 
-**Repository:** [Codeberg](https://codeberg.org/straightchlorine/colorgen) (primary) | [GitHub](https://github.com/straightchlorine/colorgen) (mirror)
+[Documentation](https://docs.colorgen.piotrkrzysztof.dev) | [PyPI](https://pypi.org/project/colorgen/)
 
-![Demo Screenshot](./doc/img/theme-dark-2.png)
+![Dark theme example](https://colorgen.docs.codextechnologies.org/theme-dark-2.png)
 
-</div>
-
-## Features
-
-- 🎨 **Automatic colorscheme generation** from any image
-- 🔧 **Multiple target configurations**: Kitty terminal, AwesomeWM, Rofi
-- 🌓 **Theme support**: Light and dark themes
-- 🖥️ **TUI interface**: Interactive text-based UI for easy configuration
-- 🤖 **ML-powered recommendations**: Color harmony analysis using trained models
-- 🐳 **Docker support**: Run in containers for consistent environments
-- 📦 **Easy installation**: Available on PyPI and as Docker image
-
-## Installation
-
-### From PyPI (Recommended)
+## Install
 
 ```bash
 pip install colorgen
 ```
 
-### With Poetry
+Or from source:
 
 ```bash
-poetry add colorgen
-```
-
-### From Source
-
-```bash
-git clone https://codeberg.org/straightchlorine/colorgen.git
+git clone https://codeberg.org/piotrkrzysztof/colorgen.git
 cd colorgen
 make install
 ```
 
-### Using Docker
-
-```bash
-docker pull ghcr.io/straightchlorine/colorgen:latest
-```
+Requires Python 3.12+.
 
 ## Usage
 
-### CLI
-
 ```bash
-# Generate colorscheme for all supported utilities
-colorgen image.png --full-config --theme dark --apply
+# Preview colors from an image
+colorgen wallpaper.png --preview
 
-# Generate for specific utilities
-colorgen image.png --config kitty awesome --theme light
+# Generate and apply a kitty colorscheme
+colorgen wallpaper.png --config kitty --theme dark --apply
 
-# Preview without applying
-colorgen image.png --config kitty --theme dark --verbose
+# Multiple targets
+colorgen wallpaper.png --config kitty awesome rofi --apply
+
+# All targets
+colorgen wallpaper.png --full-config --theme dark --apply
 ```
 
-### TUI (Text User Interface)
+When applying, the old theme gets commented out, not deleted.
 
-```bash
-colorgen-tui
-```
+## How it works
 
-### Docker
+Extracts 10 dominant colors from the image via K-means clustering, then maps them to a 19-color terminal palette (bg, fg, cursor, colors 0-15) based on hue diversity and luminance.
 
-```bash
-# Using docker-compose
-docker-compose run colorgen /images/your-image.png --config kitty
+## Supported targets
 
-# Direct docker run
-docker run -v ~/.config:/config -v $(pwd):/images ghcr.io/straightchlorine/colorgen:latest \
-  /images/your-image.png --config kitty --theme dark --apply
-```
-
-### Python API
-
-```python
-from pathlib import Path
-from colour.extract import Extractor
-from gen.parsers.kitty import KittyGen
-
-# Extract colors from image
-extractor = Extractor(Path("image.png"), theme="dark")
-palette = extractor.extract()
-
-# Generate Kitty config
-gen = KittyGen(palette, "my-theme", "dark")
-gen.write()
-gen.apply()  # Apply to your config
-```
-
-## Supported Configurations
-
-| Utility | Config Path | Status |
-|---------|-------------|--------|
-| [Kitty](https://github.com/kovidgoyal/kitty) | `~/.config/kitty/colors/` | ✅ Supported |
-| [AwesomeWM](https://github.com/awesomeWM/awesome) | `~/.config/awesome/` | ✅ Supported |
-| [Rofi](https://github.com/davatorium/rofi) | `~/.config/rofi/` | ✅ Supported |
-
-## Configuration
-
-colorgen automatically detects configuration files and applies themes non-destructively. Previous themes are commented out, not deleted.
-
-### Example: Kitty
-
-Before:
-```conf
-# ~/.config/kitty/kitty.conf
-include colors/default.conf
-```
-
-After running `colorgen image.png --config kitty --apply`:
-```conf
-# ~/.config/kitty/kitty.conf
-#include colors/default.conf
-include colors/image-dark.conf
-```
+- **kitty** - terminal color config
+- **AwesomeWM** - window manager theme
+- **rofi** - launcher theme ([adi1090x/rofi](https://github.com/adi1090x/rofi) layout)
 
 ## Development
 
-### Setup
-
 ```bash
-make install              # Install dependencies
-make install-hooks        # Setup pre-commit hooks
+make install   # install deps
+make test      # run tests
+make lint      # check code style
 ```
-
-### Testing
-
-```bash
-make test                 # Run tests with coverage
-make test-verbose         # Run tests with detailed output
-make quality             # Run all quality checks (lint, format, type-check, security)
-```
-
-### Code Quality
-
-```bash
-make lint                 # Check code style
-make format               # Auto-format code
-make type-check           # Run mypy type checking
-make security             # Run security scans
-```
-
-### Building
-
-```bash
-make build                # Build Python package
-make docker-build         # Build Docker image
-make docs                 # Build documentation
-make docs-serve           # Serve docs locally at http://localhost:8000
-```
-
-## Documentation
-
-Full documentation is available at [colorgen.straightchlorine.org](https://colorgen.straightchlorine.org) or [GitHub Pages](https://straightchlorine.github.io/colorgen)
-
-## Examples
-
-### Dark Theme - Red Shades
-![Dark Theme](./doc/img/theme-dark-2.png)
-![Dark Theme Rofi](./doc/img/rofi-dark-2.png)
-
-### Light Theme - Mountain Peak
-![Light Theme](./doc/img/theme-light.png)
-![Light Theme Rofi](./doc/img/rofi-light.png)
-
-## Architecture
-
-colorgen uses a modular parser architecture:
-
-```
-colorgen/
-├── colour/              # Color extraction and management
-│   ├── colour.py        # Colour class
-│   └── extract.py       # Image processing
-├── gen/                 # Configuration generators
-│   ├── gen.py           # Base ConfigGen class
-│   └── parsers/         # Target-specific parsers
-│       ├── kitty.py
-│       ├── awesome.py
-│       └── rofi.py
-└── tui/                 # Text user interface (coming soon)
-```
-
-## Roadmap
-
-- [x] CLI interface with comprehensive testing
-- [x] Docker support
-- [x] CI/CD with Woodpecker CI 
-- [x] PyPI packaging
-- [ ] TUI with Textual
-- [ ] ML-powered color harmony recommendations
-- [ ] Wayland compositor support (Hyprland, Sway)
-- [ ] GTK theme generation
-- [ ] Theme switching via Rofi applet
-- [ ] Web preview interface
 
 ## License
 
-GPL-3.0-or-later - see [LICENSE](LICENSE) for details
+GPL-3.0-or-later
 
 ## Author
 
-**Piotr Krzysztof Lis**
-- Codeberg: [@straightchlorine](https://codeberg.org/straightchlorine)
-- GitHub: [@straightchlorine](https://github.com/straightchlorine) (mirror)
-- Email: piotr@codextechnologies.org
+Piotr Krzysztof Lis - [Codeberg](https://codeberg.org/piotrkrzysztof) | [GitHub](https://github.com/straightchlorine)
 
-## Acknowledgments
-
-- [Pylette](https://github.com/qTipTip/Pylette) for color extraction
-- [Textual](https://github.com/Textualize/textual) for TUI framework
+Built with [Pylette](https://github.com/qTipTip/Pylette) for color extraction.

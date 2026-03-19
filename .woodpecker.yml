@@ -1,0 +1,39 @@
+---
+steps:
+  publish-pypi:
+    image: python:3.12
+    commands:
+      - pip install poetry
+      - poetry install --no-interaction
+      - poetry build
+      - pip install twine
+      - twine upload dist/* -u __token__ -p "$${PYPI_TOKEN}"
+    when:
+      event: tag
+    secrets:
+      - pypi_token
+
+  docs:
+    image: python:3.12
+    commands:
+      - pip install poetry
+      - poetry install --no-interaction --no-root --with dev
+      - poetry install --no-interaction
+      - poetry run mkdocs build --strict
+      - |
+        apt-get update && apt-get install -y git
+        cd site
+        git init
+        git checkout -b pages
+        echo "docs.colorgen.piotrkrzysztof.dev" > .domains
+        git add .
+        git config user.email "ci@woodpecker"
+        git config user.name "Woodpecker CI"
+        git commit -m "Deploy docs"
+        git remote add origin https://$${CODEBERG_TOKEN}@codeberg.org/piotrkrzysztof/colorgen.git
+        git push -f origin pages
+    when:
+      event: push
+      branch: master
+    secrets:
+      - codeberg_token
