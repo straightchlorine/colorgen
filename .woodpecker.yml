@@ -1,19 +1,20 @@
 ---
 steps:
-  publish-pypi:
+  - name: publish-pypi
     image: python:3.12
     commands:
       - pip install poetry
       - poetry install --no-interaction
       - poetry build
       - pip install twine
-      - twine upload dist/* -u __token__ -p "$${PYPI_TOKEN}"
+      - twine upload dist/* -u __token__ -p $$PYPI_TOKEN
+    environment:
+      PYPI_TOKEN:
+        from_secret: pypi_token
     when:
       event: tag
-    secrets:
-      - pypi_token
 
-  docs:
+  - name: docs
     image: python:3.12
     commands:
       - pip install poetry
@@ -30,10 +31,11 @@ steps:
         git config user.email "ci@woodpecker"
         git config user.name "Woodpecker CI"
         git commit -m "Deploy docs"
-        git remote add origin https://$${CODEBERG_TOKEN}@codeberg.org/piotrkrzysztof/colorgen.git
+        git remote add origin https://$$CODEBERG_TOKEN@codeberg.org/piotrkrzysztof/colorgen.git
         git push -f origin pages
+    environment:
+      CODEBERG_TOKEN:
+        from_secret: codeberg_token
     when:
       event: push
       branch: master
-    secrets:
-      - codeberg_token
