@@ -6,6 +6,7 @@
 import argparse
 from pathlib import Path
 
+from colour.extract import Extractor
 from colour.theme import Theme
 from gen.genmanager import GenerationManager
 
@@ -93,6 +94,21 @@ class ArgumentParser:
             "--apply", "-a", help="Replace existing colorscheme", action="store_true"
         )
 
+        self.parser.add_argument(
+            "--preview",
+            "-p",
+            help="Preview generated palette in terminal",
+            action="store_true",
+        )
+
+
+def _preview_palette(palette: list) -> None:
+    """Display the generated palette in the terminal."""
+    print()
+    for colour in palette:
+        colour.display()
+    print()
+
 
 def main() -> None:
     """
@@ -104,16 +120,31 @@ def main() -> None:
     parser = ArgumentParser()
     args = parser.args
 
-    # Convert string theme to Theme enum
     theme = Theme.DARK if args.theme == "dark" else Theme.LIGHT
 
-    configs = GenerationManager(
-        args.image,
-        args.config if args.config else args.full_config,
-        theme,
-        args.apply,
-    )
-    configs.generate()
+    has_config = args.config or args.full_config
+
+    if args.preview and not has_config:
+        # Preview only — extract and display, don't write configs
+        extractor = Extractor(args.image, theme)
+        palette = extractor.extract()
+        _preview_palette(palette)
+        return
+
+    if has_config:
+        manager = GenerationManager(
+            args.image,
+            args.config if args.config else args.full_config,
+            theme,
+            args.apply,
+        )
+        manager.generate()
+
+        if args.preview:
+            _preview_palette(manager.palette)
+    else:
+        # No config and no preview — show help
+        parser.parser.print_help()
 
 
 if __name__ == "__main__":

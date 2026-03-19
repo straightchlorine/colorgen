@@ -24,7 +24,7 @@ class TestExtractor:
         extractor = Extractor(test_image_path, "dark")
         palette = extractor.extract()
 
-        assert len(palette) == 16  # bg, fg, cursor + 12 colors
+        assert len(palette) == 19  # bg, fg, cursor + 12 colors
         assert all(isinstance(colour, Colour) for colour in palette)
 
     def test_extract_light_theme(self, test_image_path: Path) -> None:
@@ -32,7 +32,7 @@ class TestExtractor:
         extractor = Extractor(test_image_path, "light")
         palette = extractor.extract()
 
-        assert len(palette) == 16
+        assert len(palette) == 19
         assert all(isinstance(colour, Colour) for colour in palette)
 
     def test_colour_ids_are_correct(self, test_image_path: Path) -> None:
@@ -40,24 +40,7 @@ class TestExtractor:
         extractor = Extractor(test_image_path, "dark")
         palette = extractor.extract()
 
-        expected_ids = [
-            "background",
-            "foreground",
-            "cursor",
-            "color0",
-            "color1",
-            "color2",
-            "color3",
-            "color4",
-            "color5",
-            "color6",
-            "color7",
-            "color8",
-            "color9",
-            "color10",
-            "color11",
-            "color12",
-        ]
+        expected_ids = Extractor.COLOUR_ID
 
         for i, colour in enumerate(palette):
             assert colour.id == expected_ids[i]
@@ -104,7 +87,7 @@ class TestExtractor:
 
         # Get colors 0-7 (first set) and 8-15 (bright set)
         colors_normal = palette[3:11]  # color0 to color7
-        colors_bright = palette[11:15]  # color8 to color15
+        colors_bright = palette[11:19]  # color8 to color15
 
         # For dark theme, bright colors should generally be lighter
         for normal, bright in zip(colors_normal, colors_bright):
@@ -143,5 +126,5 @@ class TestExtractor:
         extractor = Extractor(test_image_path, theme)
         palette = extractor.extract()
 
-        assert len(palette) == 16
+        assert len(palette) == 19
         assert all(isinstance(colour, Colour) for colour in palette)

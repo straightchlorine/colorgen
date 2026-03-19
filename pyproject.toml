@@ -1,7 +1,7 @@
 [project]
 name = "colorgen"
 description = "Effortless image-based colorscheme generation with ML-powered recommendations"
-keywords = ["colorscheme", "theme", "terminal", "awesomewm", "kitty", "rofi", "tui"]
+keywords = ["colorscheme", "theme", "terminal", "awesomewm", "kitty", "rofi"]
 
 version = "0.2.0"
 requires-python = "==3.12.*"
@@ -26,18 +26,15 @@ repository = "https://codeberg.org/straightchlorine/colorgen"
 
 dependencies = [
     "pylette==5.1.1",
-    "textual>=7.3.0",
     "pillow<12.1.0",
 ]
 
 [project.scripts]
 colorgen = "colorgen:main"
-colorgen-tui = "tui:main"
 
 [tool.poetry.dependencies]
 python = "~3.12"
 pylette = "==5.1.1"
-textual = "^7.3.0"
 pillow = "<12.1.0"
 
 [tool.poetry.group.dev.dependencies]

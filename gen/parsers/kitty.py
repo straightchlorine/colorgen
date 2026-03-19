@@ -31,6 +31,7 @@ class KittyGen(ConfigGen):
         self.colors_dir = Path.joinpath(Path.home(), ".config", "kitty", "colors")
         self.filename = self.filename + ".conf"
         self.filepath = Path.joinpath(self.colors_dir, self.filename)
+        self._include_prefix = "include colors/"
         self._check_directory()
 
     def _write_config(self):
@@ -74,7 +75,7 @@ class KittyGen(ConfigGen):
         if present:
             return (line, True)
         else:
-            return ("include colors/" + self.filename + "\n", True)
+            return (self._include_prefix + self.filename + "\n", True)
 
     def apply(self):
         """
@@ -83,7 +84,15 @@ class KittyGen(ConfigGen):
         super().apply()
         with open(self.config_path, "r") as kitty_config:
             lines = kitty_config.readlines()
-            lines = self._file_edit(lines, "include colors/")
+
+        # Detect include path format: "include ./colors/" vs "include colors/"
+        self._include_prefix = "include colors/"
+        for line in lines:
+            if "include ./colors/" in line or "#include ./colors/" in line:
+                self._include_prefix = "include ./colors/"
+                break
+
+        lines = self._file_edit(lines, self._include_prefix)
 
         with open(self.config_path, "w") as kitty_config:
             for line in lines:
