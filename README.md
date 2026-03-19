@@ -11,7 +11,7 @@ Generate terminal colorschemes from images for kitty, AwesomeWM, and rofi.
 
 [Documentation](https://docs.colorgen.piotrkrzysztof.dev) | [PyPI](https://pypi.org/project/colorgen/)
 
-![Dark theme example](https://colorgen.docs.codextechnologies.org/theme-dark-2.png)
+![Dark theme example](https://colorgen.docs.codextechnologies.org/mkdocs/theme-dark-2.png)
 
 ## Install
 

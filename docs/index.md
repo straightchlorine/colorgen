@@ -19,9 +19,9 @@ colorgen wallpaper.jpg --preview --config kitty --theme dark --apply
 
 It extracts dominant colors using K-means clustering, maps them to a 19-color terminal palette (background, foreground, cursor, colors 0-15), and writes config files for your tools.
 
-![Dark theme example](https://colorgen.docs.codextechnologies.org/theme-dark-2.png)
+![Dark theme example](https://colorgen.docs.codextechnologies.org/mkdocs/theme-dark-2.png)
 
-![Rofi dark example](https://colorgen.docs.codextechnologies.org/rofi-dark-2.png)
+![Rofi dark example](https://colorgen.docs.codextechnologies.org/mkdocs/rofi-dark-2.png)
 
 ## Supported targets
 
