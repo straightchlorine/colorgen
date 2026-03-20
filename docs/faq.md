@@ -29,6 +29,7 @@ Yes. Create a new parser in `gen/parsers/` — look at `kitty.py` as a reference
 - **kitty**: `~/.config/kitty/colors/<name>-<theme>.conf`
 - **AwesomeWM**: `~/.config/awesome/theme/themes/<name>-<theme>.lua`
 - **Waybar**: `~/.config/waybar/colors/<name>-<theme>.css`
+- **dunst**: `~/.config/dunst/dunstrc.d/99-colors.conf`
 - **rofi**: `~/.config/rofi/colors/<name>-<theme>.rasi`
 
 ### Where do I report bugs?

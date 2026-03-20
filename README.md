@@ -2,7 +2,7 @@
 
 <div align="center">
 
-Generate terminal colorschemes from images for kitty, AwesomeWM, Waybar, and rofi.
+Generate terminal colorschemes from images for kitty, AwesomeWM, Waybar, dunst, and rofi.
 
 **Repo:** [Codeberg](https://codeberg.org/piotrkrzysztof/colorgen) (primary) · [GitHub](https://github.com/straightchlorine/colorgen) (mirror)
 
@@ -58,8 +58,9 @@ Extracts 10 dominant colors from the image via K-means clustering, then maps the
 ## Supported targets
 
 - **kitty** - terminal color config
-- **AwesomeWM** - window manager theme
+- **AwesomeWM** - window manager theme ([awesomewm-basileia](https://github.com/straightchlorine/awesomewm-basileia) layout)
 - **Waybar** - status bar colors via `@define-color` CSS variables
+- **dunst** - notification daemon colors via `dunstrc.d` drop-in
 - **rofi** - launcher theme ([adi1090x/rofi](https://github.com/adi1090x/rofi) layout)
 
 ## Development

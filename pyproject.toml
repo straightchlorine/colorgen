@@ -1,9 +1,9 @@
 [project]
 name = "colorgen"
 description = "Generate terminal colorschemes from images"
-keywords = ["colorscheme", "theme", "terminal", "awesomewm", "kitty", "rofi", "waybar"]
+keywords = ["colorscheme", "theme", "terminal", "awesomewm", "kitty", "rofi", "waybar", "dunst"]
 
-version = "1.0.0"
+version = "1.1.0"
 requires-python = "==3.12.*"
 
 license = "GPL-3.0-or-later"
