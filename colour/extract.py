@@ -252,7 +252,9 @@ class Extractor:
         cursor = ensure_contrast(cursor, bg, is_dark)
 
         normal = self.__pick_normal_colors(remaining)
-        normal = [ensure_contrast(c, bg, is_dark, min_lightness=0.45, max_lightness=0.55) for c in normal]
+        normal = [
+            ensure_contrast(c, bg, is_dark, min_lightness=0.45, max_lightness=0.55) for c in normal
+        ]
 
         bright = self.__generate_bright_variants(normal)
         bright = [

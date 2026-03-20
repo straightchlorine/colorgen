@@ -7,6 +7,7 @@ from colour.extract import Extractor
 from colour.theme import Theme
 from gen.gen import ConfigGen, ConfigNotFoundException
 from gen.parsers.awesome import AwesomeGen
+from gen.parsers.dunst import DunstGen
 from gen.parsers.kitty import KittyGen
 from gen.parsers.rofi import RofiGen
 from gen.parsers.waybar import WaybarGen
@@ -51,7 +52,7 @@ class GenerationManager:
 
         # Default configs
         if isinstance(configs, bool) and configs:
-            self.__cfgs = ["kitty", "rofi", "awesome", "waybar"]
+            self.__cfgs = ["kitty", "rofi", "awesome", "waybar", "dunst"]
         else:
             self.__cfgs = configs if isinstance(configs, list) else []
 
@@ -60,6 +61,7 @@ class GenerationManager:
         "awesome": AwesomeGen,
         "rofi": RofiGen,
         "waybar": WaybarGen,
+        "dunst": DunstGen,
     }
 
     def generate(self) -> None:

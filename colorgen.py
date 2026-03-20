@@ -59,7 +59,7 @@ class ArgumentParser:
             "-c",
             help="Generate config for a given utilities",
             type=str,
-            choices=["kitty", "awesome", "rofi", "waybar"],
+            choices=["kitty", "awesome", "rofi", "waybar", "dunst"],
             action="extend",
             nargs="+",
         )
