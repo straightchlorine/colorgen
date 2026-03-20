@@ -51,5 +51,3 @@ colorgen wallpaper.png --config kitty --theme light --apply
 ## Tips
 
 - **Preview first**: Use `--preview` to see what you're getting before applying
-- **Kitty auto-reloads** config changes. AwesomeWM needs `mod+ctrl+r` to restart.
-- Images with distinct, varied colors produce better palettes than monotone ones.

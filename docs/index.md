@@ -1,6 +1,6 @@
 # colorgen
 
-<div align="center">
+<div align="center" markdown>
 
 A CLI tool that extracts colors from images and generates terminal colorschemes for kitty, AwesomeWM, Waybar, dunst, and rofi.
 
@@ -10,7 +10,6 @@ A CLI tool that extracts colors from images and generates terminal colorschemes 
 [![Total Downloads](https://static.pepy.tech/badge/colorgen)](https://pepy.tech/project/colorgen)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/colorgen)](https://pypi.org/project/colorgen/)
 [![CI](https://ci.codextechnologies.org/api/badges/4/status.svg)](https://ci.codextechnologies.org/repos/4)
-
 </div>
 
 ## What it does
