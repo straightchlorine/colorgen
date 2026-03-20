@@ -1,5 +1,3 @@
-# Author: Piotr Krzysztof Lis - github.com/straightchlorine
-
 """Exception hierarchy for colorgen."""
 
 

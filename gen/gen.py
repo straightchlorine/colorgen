@@ -1,5 +1,3 @@
-# Author: Piotr Krzysztof Lis - github.com/straightchlorine
-
 from pathlib import Path
 
 from colour.colour import Colour

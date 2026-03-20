@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# Author: Piotr Krzysztof Lis - github.com/straightchlorine
 
 """Color extractor, utilises Pylette."""
 

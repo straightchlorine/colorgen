@@ -7,6 +7,7 @@ from gen.genmanager import GenerationManager
 from gen.parsers.awesome import AwesomeGen
 from gen.parsers.kitty import KittyGen
 from gen.parsers.rofi import RofiGen
+from gen.parsers.waybar import WaybarGen
 
 
 def test_kitty_write(test_image_path: Path) -> None:
@@ -152,6 +153,69 @@ def test_rofi_apply(test_image_path: Path, test_rofi_config: Path) -> None:
     finally:
         # Restore original config
         test_rofi_config.write_text(original_config)
+
+
+def test_waybar_write(test_image_path: Path) -> None:
+    """Test that WaybarGen writes a configuration file."""
+    palette = Extractor(test_image_path, "dark").extract()
+    colorscheme = test_image_path.stem
+    theme = "dark"
+
+    gen = WaybarGen(palette, colorscheme, theme)
+    gen.write()
+
+    try:
+        assert gen.filepath.exists()
+        content = gen.filepath.read_text()
+        assert "@define-color background" in content
+        assert "@define-color foreground" in content
+        assert "@define-color color0" in content
+    finally:
+        if gen.filepath.exists():
+            gen.filepath.unlink()
+
+
+def test_waybar_apply(test_image_path: Path, test_waybar_config: Path) -> None:
+    """Test that WaybarGen applies configuration correctly."""
+    palette = Extractor(test_image_path, "dark").extract()
+    colorscheme = test_image_path.stem
+    theme = "dark"
+
+    gen = WaybarGen(palette, colorscheme, theme)
+    gen.config_path = test_waybar_config
+
+    original_config = test_waybar_config.read_text()
+
+    try:
+        gen.apply()
+        modified_config = test_waybar_config.read_text()
+
+        assert f'@import url("colors/{gen.filename}")' in modified_config
+        # Old import should be commented out
+        assert '/* @import url("colors/default.css")' in modified_config
+    finally:
+        test_waybar_config.write_text(original_config)
+
+
+def test_waybar_apply_first_time(test_image_path: Path, tmp_path: Path) -> None:
+    """Test that WaybarGen handles first-time apply (no existing imports)."""
+    palette = Extractor(test_image_path, "dark").extract()
+    colorscheme = test_image_path.stem
+    theme = "dark"
+
+    config_file = tmp_path / "style.css"
+    config_file.write_text("* {\n    font-family: monospace;\n}\n")
+
+    gen = WaybarGen(palette, colorscheme, theme)
+    gen.config_path = config_file
+
+    gen.apply()
+    modified_config = config_file.read_text()
+
+    # Import should be prepended at top
+    assert modified_config.startswith(f'@import url("colors/{gen.filename}")')
+    # Original content should still be there
+    assert "font-family: monospace" in modified_config
 
 
 def test_generation_manager(

@@ -14,7 +14,7 @@ colorgen IMAGE [OPTIONS]
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `-c, --config` | Target utilities: `kitty`, `awesome`, `rofi` | — |
+| `-c, --config` | Target utilities: `kitty`, `awesome`, `rofi`, `waybar` | — |
 | `-fc, --full-config` | Generate for all targets (mutually exclusive with `-c`) | — |
 | `-t, --theme` | `dark` or `light` | `dark` |
 | `-a, --apply` | Apply generated theme to config files | off |
@@ -46,6 +46,7 @@ colorgen wallpaper.png --full-config --theme light --apply
 |--------|-----------|------------|
 | kitty | `~/.config/kitty/colors/<name>-<theme>.conf` | `~/.config/kitty/kitty.conf` |
 | AwesomeWM | `~/.config/awesome/theme/themes/<name>-<theme>.lua` | `~/.config/awesome/theme/theme.lua` |
+| Waybar | `~/.config/waybar/colors/<name>-<theme>.css` | `~/.config/waybar/style.css` |
 | rofi | `~/.config/rofi/colors/<name>-<theme>.rasi` | `~/.config/rofi/launchers/type-4/shared/colors.rasi` |
 
 ## How apply works

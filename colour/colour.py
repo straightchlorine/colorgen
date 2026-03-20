@@ -1,5 +1,3 @@
-# Author: Piotr Krzysztof Lis - github.com/straightchlorine
-
 """Basic object storing all required information about given colour."""
 
 from dataclasses import dataclass, field

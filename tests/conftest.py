@@ -140,6 +140,18 @@ def test_rofi_config(tmp_path: Path) -> Path:
     return config_file
 
 
+@pytest.fixture
+def test_waybar_config(tmp_path: Path) -> Path:
+    """Create a temporary waybar style.css file for testing."""
+    cfg_dir = tmp_path / "cfg"
+    cfg_dir.mkdir(exist_ok=True)
+    config_file = cfg_dir / "style.css"
+    config_file.write_text(
+        '@import url("colors/default.css");\n\n* {\n    font-family: monospace;\n}\n'
+    )
+    return config_file
+
+
 @pytest.fixture(autouse=True)
 def reset_env(monkeypatch: pytest.MonkeyPatch) -> None:
     """Reset environment variables for each test."""

@@ -1,5 +1,3 @@
-# Author: Piotr Krzysztof Lis - github.com/straightchlorine
-
 """Configuration generation manager."""
 
 from pathlib import Path
@@ -11,6 +9,7 @@ from gen.gen import ConfigGen
 from gen.parsers.awesome import AwesomeGen
 from gen.parsers.kitty import KittyGen
 from gen.parsers.rofi import RofiGen
+from gen.parsers.waybar import WaybarGen
 
 
 class GenerationManager:
@@ -52,7 +51,7 @@ class GenerationManager:
 
         # Default configs
         if isinstance(configs, bool) and configs:
-            self.__cfgs = ["kitty", "rofi", "awesome"]
+            self.__cfgs = ["kitty", "rofi", "awesome", "waybar"]
         else:
             self.__cfgs = configs if isinstance(configs, list) else []
 
@@ -76,6 +75,12 @@ class GenerationManager:
 
         if "rofi" in self.__cfgs:
             gen = RofiGen(self.palette, self.colorscheme, self.__theme)
+            gen.write()
+            if self.__apply:
+                gen.apply()
+
+        if "waybar" in self.__cfgs:
+            gen = WaybarGen(self.palette, self.colorscheme, self.__theme)
             gen.write()
             if self.__apply:
                 gen.apply()

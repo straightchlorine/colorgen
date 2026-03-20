@@ -2,7 +2,7 @@
 
 <div align="center">
 
-A CLI tool that extracts colors from images and generates terminal colorschemes for kitty, AwesomeWM, and rofi.
+A CLI tool that extracts colors from images and generates terminal colorschemes for kitty, AwesomeWM, Waybar, and rofi.
 
 **Repo:** [Codeberg](https://codeberg.org/piotrkrzysztof/colorgen) (primary) · [GitHub](https://github.com/straightchlorine/colorgen) (mirror)
 
@@ -31,6 +31,7 @@ It extracts dominant colors using K-means clustering, maps them to a 19-color te
 
 - **kitty** - terminal emulator color config
 - **AwesomeWM** - window manager theme colors
+- **Waybar** - status bar colors via `@define-color` CSS variables
 - **rofi** - launcher color theme (expects [adi1090x/rofi](https://github.com/adi1090x/rofi) layout)
 
 ## Links

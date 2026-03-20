@@ -1,5 +1,3 @@
-# Author: Piotr Krzysztof Lis - github.com/straightchlorine
-
 """Theme enumeration for colorscheme generation."""
 
 from enum import Enum

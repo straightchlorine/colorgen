@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# Author: Piotr Krzysztof Lis - github.com/straightchlorine
 
 """Command-line interface for colorgen - colorscheme generation from images."""
 
@@ -60,7 +59,7 @@ class ArgumentParser:
             "-c",
             help="Generate config for a given utilities",
             type=str,
-            choices=["kitty", "awesome", "rofi"],
+            choices=["kitty", "awesome", "rofi", "waybar"],
             action="extend",
             nargs="+",
         )

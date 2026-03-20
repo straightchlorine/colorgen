@@ -1,5 +1,3 @@
-# Author: Piotr Krzysztof Lis - github.com/straightchlorine
-
 """Color extraction and manipulation module."""
 
 from colour.colour import Colour
