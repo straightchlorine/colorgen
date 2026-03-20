@@ -14,6 +14,7 @@ from colour.utils import (
     brighten,
     color_distance,
     darken,
+    ensure_contrast,
     luminance,
     rgb_to_hsl,
     saturation,
@@ -239,8 +240,23 @@ class Extractor:
             InvalidImageError: If the image cannot be processed by Pylette.
         """
         raw_colors = self.__extract_palette()
+        is_dark = self.theme == Theme.DARK
+
         bg, fg, remaining = self.__pick_bg_fg(raw_colors)
+
+        # Ensure fg is readable against bg
+        if color_distance(bg, fg) < 100:
+            fg = (240, 240, 240) if is_dark else (20, 20, 20)
+
         cursor, remaining = self.__pick_cursor(remaining)
+        cursor = ensure_contrast(cursor, bg, is_dark)
+
         normal = self.__pick_normal_colors(remaining)
+        normal = [ensure_contrast(c, bg, is_dark, min_lightness=0.45, max_lightness=0.55) for c in normal]
+
         bright = self.__generate_bright_variants(normal)
+        bright = [
+            ensure_contrast(c, bg, is_dark, min_lightness=0.6, max_lightness=0.4) for c in bright
+        ]
+
         return self.__build_palette(bg, fg, cursor, normal, bright)

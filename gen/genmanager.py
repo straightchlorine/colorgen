@@ -5,7 +5,7 @@ from pathlib import Path
 from colour.colour import Colour
 from colour.extract import Extractor
 from colour.theme import Theme
-from gen.gen import ConfigGen
+from gen.gen import ConfigGen, ConfigNotFoundException
 from gen.parsers.awesome import AwesomeGen
 from gen.parsers.kitty import KittyGen
 from gen.parsers.rofi import RofiGen
@@ -55,32 +55,25 @@ class GenerationManager:
         else:
             self.__cfgs = configs if isinstance(configs, list) else []
 
+    GENERATORS: dict[str, type[ConfigGen]] = {
+        "kitty": KittyGen,
+        "awesome": AwesomeGen,
+        "rofi": RofiGen,
+        "waybar": WaybarGen,
+    }
+
     def generate(self) -> None:
-        """
-        Generate color configurations for specified utilities.
-        """
-        gen: ConfigGen
+        """Generate color configurations for specified utilities."""
+        for name in self.__cfgs:
+            gen_cls = self.GENERATORS.get(name)
+            if gen_cls is None:
+                continue
 
-        if "kitty" in self.__cfgs:
-            gen = KittyGen(self.palette, self.colorscheme, self.__theme)
+            gen = gen_cls(self.palette, self.colorscheme, self.__theme)
             gen.write()
-            if self.__apply:
-                gen.apply()
 
-        if "awesome" in self.__cfgs:
-            gen = AwesomeGen(self.palette, self.colorscheme, self.__theme)
-            gen.write()
             if self.__apply:
-                gen.apply()
-
-        if "rofi" in self.__cfgs:
-            gen = RofiGen(self.palette, self.colorscheme, self.__theme)
-            gen.write()
-            if self.__apply:
-                gen.apply()
-
-        if "waybar" in self.__cfgs:
-            gen = WaybarGen(self.palette, self.colorscheme, self.__theme)
-            gen.write()
-            if self.__apply:
-                gen.apply()
+                try:
+                    gen.apply()
+                except ConfigNotFoundException:
+                    print(f"Skipping {name}: config file not found")

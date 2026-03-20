@@ -50,3 +50,30 @@ def darken(rgb: tuple[int, int, int], amount: float = 0.15) -> tuple[int, int, i
     hue, sat, light = rgb_to_hsl(rgb)
     light = max(0.0, light - amount)
     return hsl_to_rgb(hue, sat, light)
+
+
+def ensure_contrast(
+    rgb: tuple[int, int, int],
+    bg: tuple[int, int, int],
+    dark_theme: bool,
+    min_lightness: float = 0.3,
+    max_lightness: float = 0.65,
+) -> tuple[int, int, int]:
+    """Adjust a color's lightness so it's readable against the background.
+
+    For dark themes, ensures lightness >= min_lightness.
+    For light themes, ensures lightness <= max_lightness.
+    Also ensures minimum color distance from the background.
+    """
+    hue, sat, light = rgb_to_hsl(rgb)
+
+    light = max(min_lightness, light) if dark_theme else min(max_lightness, light)
+
+    adjusted = hsl_to_rgb(hue, sat, light)
+
+    # If still too close to background, push further
+    if color_distance(adjusted, bg) < 60:
+        light = min(1.0, light + 0.15) if dark_theme else max(0.0, light - 0.15)
+        adjusted = hsl_to_rgb(hue, sat, light)
+
+    return adjusted
