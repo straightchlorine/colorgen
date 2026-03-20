@@ -1,15 +1,19 @@
 # colorgen
 
+<div align="center">
+
 Generate terminal colorschemes from images for kitty, AwesomeWM, and rofi.
 
-**Repo:** [Codeberg](https://codeberg.org/piotrkrzysztof/colorgen) (primary) | [GitHub](https://github.com/straightchlorine/colorgen) (mirror)
+**Repo:** [Codeberg](https://codeberg.org/piotrkrzysztof/colorgen) (primary) · [GitHub](https://github.com/straightchlorine/colorgen) (mirror)
 
-[![CI](https://ci.codextechnologies.org/api/badges/4/status.svg)](https://ci.codextechnologies.org/repos/4)
 [![PyPI version](https://badge.fury.io/py/colorgen.svg)](https://pypi.org/project/colorgen/)
 [![Total Downloads](https://static.pepy.tech/badge/colorgen)](https://pepy.tech/project/colorgen)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/colorgen)](https://pypi.org/project/colorgen/)
+[![CI](https://ci.codextechnologies.org/api/badges/4/status.svg)](https://ci.codextechnologies.org/repos/4)
 
-[Documentation](https://docs.colorgen.piotrkrzysztof.dev) | [PyPI](https://pypi.org/project/colorgen/)
+[Documentation](https://docs.colorgen.piotrkrzysztof.dev) · [PyPI](https://pypi.org/project/colorgen/)
+
+</div>
 
 ![Dark theme example](https://colorgen.docs.codextechnologies.org/mkdocs/theme-dark-2.png)
 
