@@ -15,6 +15,8 @@ from colour.utils import (
     color_distance,
     darken,
     ensure_contrast,
+    hsl_to_rgb,
+    hue_spread,
     luminance,
     rgb_to_hsl,
     saturation,
@@ -160,6 +162,13 @@ class Extractor:
             if all(color_distance(c, u) > 30 for u in unique):
                 unique.append(c)
 
+        # Check if hue diversity is sufficient
+        if hue_spread(unique) < 90:
+            # Monochromatic image - generate hue-rotated variants
+            avg_sat = sum(rgb_to_hsl(c)[1] for c in unique) / len(unique)
+            avg_light = sum(rgb_to_hsl(c)[2] for c in unique) / len(unique)
+            return [hsl_to_rgb((i * 45) % 360, avg_sat, avg_light) for i in range(8)]
+
         picked = []
         if len(unique) >= 8:
             # Pick 8 evenly spaced
@@ -173,7 +182,6 @@ class Extractor:
             variant_idx = 0
             while len(picked) < 8:
                 base = unique[variant_idx % len(unique)]
-                # Alternate between slightly darker and lighter
                 if len(picked) % 2 == 0:
                     variant = darken(base, 0.1 + 0.05 * (len(picked) // 2))
                 else:

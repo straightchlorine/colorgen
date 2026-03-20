@@ -52,6 +52,23 @@ def darken(rgb: tuple[int, int, int], amount: float = 0.15) -> tuple[int, int, i
     return hsl_to_rgb(hue, sat, light)
 
 
+def hue_spread(colors: list[tuple[int, int, int]]) -> float:
+    """Calculate the hue range (in degrees) of a list of colors.
+
+    Handles hue wrapping (e.g. 350 and 10 are only 20 apart).
+    Returns 0-360 where 0 means all same hue, 360 means full spectrum.
+    """
+    hues = [rgb_to_hsl(c)[0] for c in colors]
+    if len(hues) < 2:
+        return 0.0
+    hues_sorted = sorted(hues)
+    max_gap = 0.0
+    for i in range(len(hues_sorted)):
+        gap = (hues_sorted[(i + 1) % len(hues_sorted)] - hues_sorted[i]) % 360
+        max_gap = max(max_gap, gap)
+    return 360 - max_gap
+
+
 def ensure_contrast(
     rgb: tuple[int, int, int],
     bg: tuple[int, int, int],
