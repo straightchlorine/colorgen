@@ -32,6 +32,14 @@ dependencies = [
 [project.scripts]
 colorgen = "colorgen:main"
 
+[tool.poetry]
+packages = [
+    { include = "colorgen.py" },
+    { include = "colour" },
+    { include = "gen" },
+    { include = "exceptions.py" },
+]
+
 [tool.poetry.dependencies]
 python = "~3.12"
 pylette = "==5.1.1"
