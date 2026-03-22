@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Color extractor, utilises Pylette."""
+"""Color extractor with semantic palette mapping."""
 
 from pathlib import Path
 from typing import ClassVar
@@ -11,33 +11,37 @@ from Pylette.src.types import ExtractionMethod
 from colour.colour import Colour
 from colour.theme import Theme
 from colour.utils import (
+    anchor_score,
     brighten,
-    color_distance,
+    contrast_ratio,
     darken,
+    derive_color,
     ensure_contrast,
     hsl_to_rgb,
-    hue_spread,
     luminance,
+    median_sat_light,
     rgb_to_hsl,
     saturation,
 )
 from exceptions import InvalidImageError
 
+# Semantic slot definitions: slot_index -> (center_hue, hue_tolerance)
+SEMANTIC_SLOTS: dict[int, tuple[float, float]] = {
+    1: (15.0, 30.0),  # red
+    2: (120.0, 30.0),  # green
+    3: (60.0, 30.0),  # yellow
+    4: (230.0, 20.0),  # blue
+    5: (300.0, 30.0),  # magenta
+    6: (185.0, 20.0),  # cyan
+}
+
 
 class Extractor:
-    """
-    Extractor class to generate a color scheme based on the provided image and theme.
+    """Extract and generate a semantic color scheme from an image.
 
-    Attributes:
-        image: Path to the image file.
-        theme: Theme type (DARK or LIGHT).
-        COLOUR_ID: Class variable containing standard color identifiers.
-
-    Methods:
-        extract: Extract and generate an 18-color terminal palette from the image.
-
-    Raises:
-        InvalidImageError: If the image file doesn't exist or cannot be loaded.
+    Uses an anchor-and-derive approach: the strongest extracted colors
+    are assigned to their nearest semantic terminal slot, and remaining
+    slots are derived to preserve the image's saturation and temperature.
     """
 
     image: Path
@@ -66,16 +70,6 @@ class Extractor:
     ]
 
     def __init__(self, image: Path, theme: Theme) -> None:
-        """
-        Initialize the Extractor instance.
-
-        Args:
-            image: Path to the image file.
-            theme: Theme type (DARK or LIGHT).
-
-        Raises:
-            InvalidImageError: If the image file doesn't exist.
-        """
         if not image.exists():
             raise InvalidImageError(f"Image file not found: {image}")
         if not image.is_file():
@@ -85,15 +79,11 @@ class Extractor:
         self.theme = theme
 
     def __extract_palette(self) -> list[tuple[int, int, int]]:
-        """Extract dominant colors from image using KMeans clustering.
-
-        Returns:
-            List of RGB tuples sorted by luminance.
-        """
+        """Extract dominant colors from image using KMeans clustering."""
         try:
             palette = extract_colors(
                 image=str(self.image),
-                palette_size=10,
+                palette_size=18,
                 resize=True,
                 mode=ExtractionMethod.KM,
                 sort_mode="luminance",
@@ -106,14 +96,7 @@ class Extractor:
     def __pick_bg_fg(
         self, colors: list[tuple[int, int, int]]
     ) -> tuple[tuple[int, int, int], tuple[int, int, int], list[tuple[int, int, int]]]:
-        """Pick background and foreground from extracted colors.
-
-        For dark themes: darkest → bg, lightest → fg.
-        For light themes: lightest → bg, darkest → fg.
-
-        Returns:
-            (bg_rgb, fg_rgb, remaining_colors)
-        """
+        """Pick background and foreground from extracted colors."""
         sorted_by_lum = sorted(colors, key=luminance)
 
         if self.theme == Theme.DARK:
@@ -129,78 +112,116 @@ class Extractor:
     def __pick_cursor(
         self, colors: list[tuple[int, int, int]]
     ) -> tuple[tuple[int, int, int], list[tuple[int, int, int]]]:
-        """Pick the most saturated color as cursor.
-
-        Returns:
-            (cursor_rgb, remaining_colors)
-        """
+        """Pick the most saturated color as cursor."""
         cursor = max(colors, key=saturation)
         remaining = [c for c in colors if c != cursor]
         return cursor, remaining
 
-    def __pick_normal_colors(
+    def __select_anchors(
         self, colors: list[tuple[int, int, int]]
-    ) -> list[tuple[int, int, int]]:
-        """Pick 8 diverse colors for the normal palette (color0-color7).
+    ) -> dict[int, tuple[int, int, int]]:
+        """Assign extracted colors to semantic slots via greedy best-score matching.
 
-        Sorts available colors by hue and picks evenly spaced ones.
-        If fewer than 8 are available, generates variants.
-
-        Returns:
-            List of 8 RGB tuples.
+        Each color can only be assigned to one slot, and each slot gets
+        at most one color. Highest-scoring pairs are assigned first.
         """
-        if not colors:
-            # Fallback: generate greys
-            return [(i * 32, i * 32, i * 32) for i in range(1, 9)]
+        # Filter out near-grey colors for chromatic assignment
+        chromatic = [c for c in colors if saturation(c) >= 0.08]
 
-        # Sort by hue for diversity
-        hue_sorted = sorted(colors, key=lambda c: rgb_to_hsl(c)[0])
+        if not chromatic:
+            return {}
 
-        # Deduplicate very similar colors
-        unique = [hue_sorted[0]]
-        for c in hue_sorted[1:]:
-            if all(color_distance(c, u) > 30 for u in unique):
-                unique.append(c)
+        # Build (color_idx, slot_idx, score) triples
+        triples: list[tuple[int, int, float]] = []
+        for ci, color in enumerate(chromatic):
+            for slot_idx, (target_hue, tolerance) in SEMANTIC_SLOTS.items():
+                score = anchor_score(color, target_hue, tolerance)
+                if score > 0:
+                    triples.append((ci, slot_idx, score))
 
-        # Check if hue diversity is sufficient
-        if hue_spread(unique) < 90:
-            # Monochromatic image - generate hue-rotated variants
-            avg_sat = sum(rgb_to_hsl(c)[1] for c in unique) / len(unique)
-            avg_light = sum(rgb_to_hsl(c)[2] for c in unique) / len(unique)
-            return [hsl_to_rgb((i * 45) % 360, avg_sat, avg_light) for i in range(8)]
+        # Greedy assignment: highest score first
+        triples.sort(key=lambda t: t[2], reverse=True)
 
-        picked = []
-        if len(unique) >= 8:
-            # Pick 8 evenly spaced
-            step = len(unique) / 8
-            for i in range(8):
-                idx = int(i * step)
-                picked.append(unique[idx])
+        assigned_colors: set[int] = set()
+        assigned_slots: set[int] = set()
+        anchors: dict[int, tuple[int, int, int]] = {}
+
+        for ci, slot_idx, _score in triples:
+            if ci in assigned_colors or slot_idx in assigned_slots:
+                continue
+            anchors[slot_idx] = chromatic[ci]
+            assigned_colors.add(ci)
+            assigned_slots.add(slot_idx)
+
+        return anchors
+
+    def __derive_missing(
+        self, anchors: dict[int, tuple[int, int, int]], all_colors: list[tuple[int, int, int]]
+    ) -> dict[int, tuple[int, int, int]]:
+        """Fill unmatched semantic slots by deriving from the image's color profile.
+
+        Uses median saturation/lightness across anchors (or all extracted colors
+        if no anchors exist) to keep derived colors feeling cohesive.
+        """
+        anchor_values = list(anchors.values())
+
+        if anchor_values:
+            med_sat, med_light = median_sat_light(anchor_values)
         else:
-            # Use what we have, fill the rest with lightness variants
-            picked = list(unique)
-            variant_idx = 0
-            while len(picked) < 8:
-                base = unique[variant_idx % len(unique)]
-                if len(picked) % 2 == 0:
-                    variant = darken(base, 0.1 + 0.05 * (len(picked) // 2))
-                else:
-                    variant = brighten(base, 0.1 + 0.05 * (len(picked) // 2))
-                picked.append(variant)
-                variant_idx += 1
+            # No anchors at all (monochromatic image) - use all colors
+            med_sat, med_light = median_sat_light(all_colors)
+            med_sat = max(0.25, med_sat)  # ensure derived colors are visible
 
-        return picked[:8]
+        result = dict(anchors)
+
+        for slot_idx, (target_hue, _tolerance) in SEMANTIC_SLOTS.items():
+            if slot_idx in result:
+                continue
+            result[slot_idx] = derive_color(target_hue, med_sat, med_light)
+
+        return result
+
+    def __pick_normal_colors(
+        self,
+        colors: list[tuple[int, int, int]],
+        bg: tuple[int, int, int],
+        fg: tuple[int, int, int],
+    ) -> list[tuple[int, int, int]]:
+        """Build 8 normal colors (color0-color7) using anchor+derive mapping.
+
+        color0 and color7 are neutrals derived from bg/fg.
+        color1-color6 are semantic chromatic slots.
+        """
+        is_dark = self.theme == Theme.DARK
+
+        anchors = self.__select_anchors(colors)
+        slot_colors = self.__derive_missing(anchors, colors)
+
+        # color0: dark neutral from bg (keep a hint of the image's hue)
+        h, s, _ = rgb_to_hsl(bg)
+        color0 = hsl_to_rgb(h, min(s, 0.15), 0.15 if is_dark else 0.88)
+
+        # color7: light neutral from fg
+        h, s, _ = rgb_to_hsl(fg)
+        color7 = hsl_to_rgb(h, min(s, 0.15), 0.80 if is_dark else 0.25)
+
+        return [
+            color0,
+            slot_colors[1],  # red
+            slot_colors[2],  # green
+            slot_colors[3],  # yellow
+            slot_colors[4],  # blue
+            slot_colors[5],  # magenta
+            slot_colors[6],  # cyan
+            color7,
+        ]
 
     def __generate_bright_variants(
         self, normal_colors: list[tuple[int, int, int]]
     ) -> list[tuple[int, int, int]]:
-        """Generate bright variants (color8-color15) from normal colors (color0-color7).
+        """Generate bright variants (color8-color15) from normal colors.
 
-        For dark themes: brighter versions.
-        For light themes: darker versions.
-
-        Returns:
-            List of 8 RGB tuples.
+        Luminance shift only - same hue and saturation.
         """
         if self.theme == Theme.DARK:
             return [brighten(c, 0.2) for c in normal_colors]
@@ -215,11 +236,7 @@ class Extractor:
         normal: list[tuple[int, int, int]],
         bright: list[tuple[int, int, int]],
     ) -> list[Colour]:
-        """Build the final 18-color palette as Colour objects.
-
-        Returns:
-            List of 18 Colour objects.
-        """
+        """Build the final 19-color palette as Colour objects."""
         palette = [
             Colour(self.COLOUR_ID[0], bg),
             Colour(self.COLOUR_ID[1], fg),
@@ -235,17 +252,9 @@ class Extractor:
         return palette
 
     def extract(self) -> list[Colour]:
-        """
-        Extract and generate a color scheme from the image.
+        """Extract and generate a semantic color scheme from the image.
 
-        Extracts 10 dominant colors and maps them to an 18-color terminal palette
-        with diverse hues and proper bright/dark variants.
-
-        Returns:
-            List of 18 Colour objects representing the generated color scheme.
-
-        Raises:
-            InvalidImageError: If the image cannot be processed by Pylette.
+        Returns a list of 19 Colour objects: bg, fg, cursor, color0-color15.
         """
         raw_colors = self.__extract_palette()
         is_dark = self.theme == Theme.DARK
@@ -253,20 +262,22 @@ class Extractor:
         bg, fg, remaining = self.__pick_bg_fg(raw_colors)
 
         # Ensure fg is readable against bg
-        if color_distance(bg, fg) < 100:
+        if contrast_ratio(fg, bg) < 4.5:
             fg = (240, 240, 240) if is_dark else (20, 20, 20)
 
         cursor, remaining = self.__pick_cursor(remaining)
         cursor = ensure_contrast(cursor, bg, is_dark)
 
-        normal = self.__pick_normal_colors(remaining)
+        normal = self.__pick_normal_colors(remaining, bg, fg)
+        # Only apply ensure_contrast to chromatic slots (indices 1-6),
+        # not color0 (dark neutral) or color7 (light neutral)
         normal = [
-            ensure_contrast(c, bg, is_dark, min_lightness=0.45, max_lightness=0.55) for c in normal
+            ensure_contrast(c, bg, is_dark) if i in range(1, 7) else c for i, c in enumerate(normal)
         ]
 
         bright = self.__generate_bright_variants(normal)
         bright = [
-            ensure_contrast(c, bg, is_dark, min_lightness=0.6, max_lightness=0.4) for c in bright
+            ensure_contrast(c, bg, is_dark, min_lightness=0.45, max_lightness=0.80) for c in bright
         ]
 
         return self.__build_palette(bg, fg, cursor, normal, bright)

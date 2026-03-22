@@ -6,6 +6,7 @@ import pytest
 
 from colour.colour import Colour
 from colour.extract import Extractor
+from colour.utils import contrast_ratio, rgb_to_hsl, saturation
 from exceptions import InvalidImageError
 
 
@@ -128,3 +129,61 @@ class TestExtractor:
 
         assert len(palette) == 19
         assert all(isinstance(colour, Colour) for colour in palette)
+
+    def test_palette_readability(self, test_image_path: Path) -> None:
+        """Test chromatic colors have sufficient contrast against background."""
+        extractor = Extractor(test_image_path, "dark")
+        palette = extractor.extract()
+        bg = palette[0].rgb
+
+        # color1-color6 (indices 4-9) and color8-color15 (indices 11-18)
+        # should be readable. Skip color0 and color7 (neutrals near bg/fg).
+        chromatic_indices = list(range(4, 10)) + list(range(11, 19))
+        for i in chromatic_indices:
+            colour = palette[i]
+            ratio = contrast_ratio(colour.rgb, bg)
+            assert ratio >= 3.0, f"{colour.id} ({colour.hex}) has ratio {ratio:.1f} < 3.0"
+
+    def test_color0_is_dark_neutral(self, test_image_path: Path) -> None:
+        """Test color0 is a low-saturation dark color in dark theme."""
+        extractor = Extractor(test_image_path, "dark")
+        palette = extractor.extract()
+        color0 = palette[3]
+        _, sat, light = rgb_to_hsl(color0.rgb)
+        assert light < 0.3
+        assert sat < 0.5
+
+    def test_color7_is_light_neutral(self, test_image_path: Path) -> None:
+        """Test color7 is a low-saturation light color in dark theme."""
+        extractor = Extractor(test_image_path, "dark")
+        palette = extractor.extract()
+        color7 = palette[10]
+        _, sat, light = rgb_to_hsl(color7.rgb)
+        assert light > 0.5
+        assert sat < 0.5
+
+    def test_monochromatic_image_still_produces_palette(
+        self, monochromatic_image_path: Path
+    ) -> None:
+        """Test greyscale image still generates valid chromatic colors."""
+        extractor = Extractor(monochromatic_image_path, "dark")
+        palette = extractor.extract()
+
+        assert len(palette) == 19
+        assert all(isinstance(c, Colour) for c in palette)
+
+        # Chromatic slots (color1-color6) should have some saturation
+        for i in range(4, 10):
+            sat = saturation(palette[i].rgb)
+            assert sat >= 0.1, f"{palette[i].id} has no saturation in monochromatic mode"
+
+    def test_warm_image_anchors_warm_slots(self, warm_image_path: Path) -> None:
+        """Test warm image anchors to warm hue slots (red/yellow)."""
+        extractor = Extractor(warm_image_path, "dark")
+        palette = extractor.extract()
+
+        assert len(palette) == 19
+
+        # color1 (red, index 4) should have warm hue
+        hue_red, _, _ = rgb_to_hsl(palette[4].rgb)
+        assert hue_red < 60 or hue_red > 330, f"color1 hue {hue_red} not warm"

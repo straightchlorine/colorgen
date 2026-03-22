@@ -30,6 +30,42 @@ def test_image_path(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
+def monochromatic_image_path(tmp_path: Path) -> Path:
+    """Create a greyscale test image."""
+    image_path = tmp_path / "mono_image.png"
+    img = Image.new("RGB", (100, 100))
+    pixels = img.load()
+
+    if pixels is not None:
+        for i in range(100):
+            for j in range(100):
+                v = int((i + j) / 200 * 255)
+                pixels[i, j] = (v, v, v)
+
+    img.save(image_path)
+    return image_path
+
+
+@pytest.fixture
+def warm_image_path(tmp_path: Path) -> Path:
+    """Create a warm-toned test image (reds, oranges, browns)."""
+    image_path = tmp_path / "warm_image.png"
+    img = Image.new("RGB", (100, 100))
+    pixels = img.load()
+
+    if pixels is not None:
+        for i in range(50):
+            for j in range(50):
+                pixels[i, j] = (180, 60, 30)  # dark red
+                pixels[i + 50, j] = (220, 140, 60)  # orange
+                pixels[i, j + 50] = (80, 40, 20)  # brown
+                pixels[i + 50, j + 50] = (240, 200, 150)  # cream
+
+    img.save(image_path)
+    return image_path
+
+
+@pytest.fixture
 def sample_palette() -> list[Colour]:
     """Create a sample color palette for testing."""
     return [
