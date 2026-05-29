@@ -3,7 +3,7 @@ name = "colorgen"
 description = "Generate terminal colorschemes from images"
 keywords = ["colorscheme", "theme", "terminal", "awesomewm", "kitty", "rofi", "waybar", "dunst"]
 
-version = "1.1.4"
+version = "1.1.5"
 requires-python = "==3.12.*"
 
 license = "GPL-3.0-or-later"
@@ -21,13 +21,16 @@ classifiers = [
     "Topic :: Desktop Environment :: Window Managers",
 ]
 
-homepage = "https://codeberg.org/piotrkrzysztof/colorgen"
-repository = "https://codeberg.org/piotrkrzysztof/colorgen"
-
 dependencies = [
     "pylette==5.1.1",
     "pillow<12.1.0",
+    "typing-extensions>=4.5.0",
 ]
+
+[project.urls]
+Homepage = "https://codeberg.org/piotrkrzysztof/colorgen"
+Repository = "https://codeberg.org/piotrkrzysztof/colorgen"
+Documentation = "https://docs.colorgen.piotrkrzysztof.dev"
 
 [project.scripts]
 colorgen = "colorgen:main"
@@ -39,11 +42,6 @@ packages = [
     { include = "gen" },
     { include = "exceptions.py" },
 ]
-
-[tool.poetry.dependencies]
-python = "~3.12"
-pylette = "==5.1.1"
-pillow = "<12.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^9.0.2"
