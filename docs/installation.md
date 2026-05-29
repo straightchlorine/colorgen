@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Python 3.12+
+- Python 3.12 or 3.13
 - Linux (primary target)
 
 ## From PyPI

@@ -18,7 +18,7 @@ PNG, JPG, JPEG, BMP, GIF, TIFF.
 
 ### How does it work?
 
-It uses [Pylette](https://github.com/qTipTip/Pylette) to extract 10 dominant colors via K-means clustering, then maps them to terminal color slots based on hue diversity, luminance, and saturation.
+It uses [Pylette](https://github.com/qTipTip/Pylette) to extract 18 dominant colors via K-means clustering, then maps them to terminal color slots based on hue diversity, luminance, and saturation.
 
 ### Can I add support for another tool?
 

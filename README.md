@@ -21,6 +21,8 @@ Generate terminal colorschemes from images for kitty, AwesomeWM, Waybar, dunst, 
 
 ## Install
 
+Requires Python 3.12 or 3.13.
+
 ```bash
 pip install colorgen
 ```
@@ -32,8 +34,6 @@ git clone https://codeberg.org/piotrkrzysztof/colorgen.git
 cd colorgen
 make install
 ```
-
-Requires Python 3.12+.
 
 ## Usage
 
@@ -51,11 +51,11 @@ colorgen wallpaper.png --config kitty awesome rofi --apply
 colorgen wallpaper.png --full-config --theme dark --apply
 ```
 
-When applying, the old theme gets commented out, not deleted.
+After applying - old theme gets commented out, not deleted.
 
 ## How it works
 
-Extracts 10 dominant colors from the image via K-means clustering, then maps them to a 19-color terminal palette (bg, fg, cursor, colors 0-15) based on hue diversity and luminance.
+Extracts 18 dominant colors from the image via K-means clustering, then maps them to a 19-color terminal palette (bg, fg, cursor, colors 0-15) based on hue diversity and luminance.
 
 ## Supported targets
 
