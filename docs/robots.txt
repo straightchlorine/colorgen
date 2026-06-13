@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://docs.colorgen.piotrkrzysztof.dev/sitemap.xml
