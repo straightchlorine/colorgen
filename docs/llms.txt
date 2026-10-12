@@ -1,0 +1,21 @@
+# colorgen
+
+> CLI tool that extracts colors from an image and generates terminal colorschemes for kitty, AwesomeWM, Waybar, dunst and rofi.
+
+colorgen reads an image, picks a palette and writes config files for the tools listed above. These docs cover installation, the CLI, the Python API and a short FAQ.
+
+## Docs
+
+- [Terminal colorscheme generator from images](https://docs.colorgen.piotrkrzysztof.dev/): colorgen is a Python command line tool that pulls dominant colors from an image and writes terminal colorschemes for kitty, AwesomeWM, Waybar, dunst and rofi.
+- [Install colorgen with pip or from source](https://docs.colorgen.piotrkrzysztof.dev/installation/): Install colorgen from PyPI with pip, or from source with Poetry. Needs Python 3.12 or 3.13 and is aimed at Linux. Also covers the command not found error.
+- [Quick start: preview and apply a colorscheme](https://docs.colorgen.piotrkrzysztof.dev/quickstart/): Quick start for colorgen: preview an image palette, write a kitty config, apply it, target several tools at once, and pick a dark or light theme from the CLI.
+- [CLI reference: colorgen options and examples](https://docs.colorgen.piotrkrzysztof.dev/usage/cli/): Reference for the colorgen command line: the image argument, flags for config targets, theme, apply and preview, examples, output paths and how apply works.
+- [Python API: extract palettes and write configs](https://docs.colorgen.piotrkrzysztof.dev/usage/api/): Use colorgen from Python: extract a 19-color palette with Extractor, write and apply a kitty config with KittyGen, or run many targets with GenerationManager.
+- [colorgen FAQ: palette, formats and config files](https://docs.colorgen.piotrkrzysztof.dev/faq/): Answers about colorgen: the 19-color palette, how colors are picked, which images work, whether it overwrites configs and how to add support for another tool.
+
+## Optional
+
+- [Source repository](https://codeberg.org/piotrkrzysztof/colorgen): code and issue tracker
+- [Author](https://piotrkrzysztof.dev/): Piotr Krzysztof Lis
+
+To the only God, be honour and glory for ever and ever.

@@ -1,3 +1,8 @@
+---
+title: "Quick start: preview and apply a colorscheme"
+description: "Quick start for colorgen: preview an image palette, write a kitty config, apply it, target several tools at once, and pick a dark or light theme from the CLI."
+---
+
 # Quick Start
 
 ## Preview colors from an image
@@ -51,3 +56,4 @@ colorgen wallpaper.png --config kitty --theme light --apply
 ## Tips
 
 - **Preview first**: Use `--preview` to see what you're getting before applying
+- **Existing include needed**: with `--apply`, the main config file of kitty, AwesomeWM, rofi or Waybar must already exist, or that target is skipped (the color file is still written); dunst has no main config to check. For kitty, AwesomeWM and rofi the file must also already have a theme include line, such as `include colors/<name>-<theme>.conf` in kitty.conf. colorgen swaps that line and does not add one. Waybar is the exception: if there is no import, colorgen adds one at the top of style.css.

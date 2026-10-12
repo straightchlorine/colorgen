@@ -1,0 +1,23 @@
+extends: default
+
+ignore: |
+  .venv/
+  site/
+
+rules:
+  line-length: disable
+  document-start: disable
+  comments:
+    min-spaces-from-content: 1
+  comments-indentation: disable
+  indentation:
+    spaces: 2
+    indent-sequences: consistent
+  # for CI files (GitHub Actions, Woodpecker, compose)
+  truthy:
+    allowed-values: ["true", "false", "on"]
+    check-keys: false
+  braces:
+    max-spaces-inside: 1
+  brackets:
+    max-spaces-inside: 1

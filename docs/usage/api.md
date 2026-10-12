@@ -1,3 +1,8 @@
+---
+title: "Python API: extract palettes and write configs"
+description: "Use colorgen from Python: extract a 19-color palette with Extractor, write and apply a kitty config with KittyGen, or run many targets with GenerationManager."
+---
+
 # Python API
 
 ## Basic usage
@@ -53,9 +58,11 @@ Enum: `Theme.DARK`, `Theme.LIGHT`
 
 ### Config generators
 
-`KittyGen`, `AwesomeGen`, `RofiGen` — all follow the same interface:
+`KittyGen`, `AwesomeGen`, `RofiGen`, `WaybarGen` and `DunstGen` (all in `gen.parsers`) follow the same interface:
 
 ```python
+from gen.parsers import KittyGen
+
 gen = KittyGen(palette, "theme-name", "dark")
 gen.write()   # write color file
 gen.apply()   # update main config to use it
@@ -64,3 +71,5 @@ gen.apply()   # update main config to use it
 ### `GenerationManager(image, configs, theme, apply)`
 
 Orchestrates extraction and generation for multiple targets at once.
+
+`configs` is a list such as `["kitty", "rofi"]`, or `True` for every target. `apply=True` also updates the main config files, except dunst, which only rewrites its drop-in.

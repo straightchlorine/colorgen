@@ -1,3 +1,8 @@
+---
+title: Terminal colorscheme generator from images
+description: colorgen is a Python command line tool that pulls dominant colors from an image and writes terminal colorschemes for kitty, AwesomeWM, Waybar, dunst and rofi.
+---
+
 # colorgen
 
 <div align="center" markdown>

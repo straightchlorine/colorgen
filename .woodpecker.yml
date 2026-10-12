@@ -1,4 +1,3 @@
----
 steps:
   - name: publish-pypi
     image: python:3.12
@@ -13,7 +12,6 @@ steps:
         from_secret: pypi_token
     when:
       event: tag
-
   - name: docs
     image: python:3.12
     commands:
@@ -35,6 +33,19 @@ steps:
     environment:
       CODEBERG_TOKEN:
         from_secret: codeberg_token
+    when:
+      event: push
+      branch: master
+  - name: indexnow
+    image: python:3.12
+    failure: ignore
+    commands:
+      - |
+        HOST=docs.colorgen.piotrkrzysztof.dev
+        KEY=90d810c25c630c45122515d81f668d80
+        urls=$(grep -o '<loc>[^<]*</loc>' site/sitemap.xml | sed 's/<[^>]*>//g' | sed 's/.*/"&"/' | paste -sd, -)
+        sleep 45
+        curl -fsS -X POST https://api.indexnow.org/indexnow -H 'Content-Type: application/json; charset=utf-8' -d "{\"host\":\"$$HOST\",\"key\":\"$$KEY\",\"keyLocation\":\"https://$$HOST/$$KEY.txt\",\"urlList\":[$$urls]}" -o /dev/null -w "indexnow: HTTP %{http_code}\n"
     when:
       event: push
       branch: master

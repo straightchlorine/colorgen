@@ -1,5 +1,5 @@
 site_name: colorgen
-site_description: Generate terminal colorschemes from images
+site_description: "Documentation for colorgen, a Python command line tool that makes terminal colorschemes from images."
 site_author: Piotr Krzysztof Lis
 site_url: https://docs.colorgen.piotrkrzysztof.dev
 
@@ -28,6 +28,7 @@ theme:
     - navigation.top
     - search.suggest
     - content.code.copy
+  custom_dir: overrides
   icon:
     repo: fontawesome/brands/git-alt
 
@@ -70,5 +71,11 @@ extra:
   social:
     - icon: fontawesome/brands/git-alt
       link: https://codeberg.org/piotrkrzysztof
+    - icon: fontawesome/solid/globe
+      link: https://piotrkrzysztof.dev
+      name: piotrkrzysztof.dev
 
-copyright: Copyright &copy; 2026 Piotr Krzysztof Lis
+extra_css:
+  - stylesheets/extra.css
+
+copyright: Copyright &copy; 2026 <a href="https://piotrkrzysztof.dev">Piotr Krzysztof Lis</a>

@@ -1,0 +1,10 @@
+.md-copyright,
+.md-copyright__highlight,
+.md-copyright a {
+  color: #fff;
+}
+
+[data-md-color-scheme="default"] {
+  --md-code-hl-comment-color: #626262;
+  --md-code-hl-operator-color: #626262;
+}

@@ -3,7 +3,7 @@ name = "colorgen"
 description = "Generate terminal colorschemes from images"
 keywords = ["colorscheme", "theme", "terminal", "awesomewm", "kitty", "rofi", "waybar", "dunst"]
 
-version = "1.1.6"
+version = "1.1.7"
 requires-python = ">=3.12,<3.14"
 
 license = "GPL-3.0-or-later"
@@ -32,6 +32,7 @@ dependencies = [
 Homepage = "https://codeberg.org/piotrkrzysztof/colorgen"
 Repository = "https://codeberg.org/piotrkrzysztof/colorgen"
 Documentation = "https://docs.colorgen.piotrkrzysztof.dev"
+Author = "https://piotrkrzysztof.dev"
 
 [project.scripts]
 colorgen = "colorgen:main"
