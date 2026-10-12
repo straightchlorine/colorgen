@@ -76,3 +76,11 @@ make lint      # check code style
 ## License
 
 GPL-3.0-or-later. Built with [Pylette](https://github.com/qTipTip/Pylette).
+
+---
+
+<div align="center">
+
+To the only God, be honour and glory for ever and ever.
+
+</div>
