@@ -3,7 +3,7 @@ name = "colorgen"
 description = "Generate terminal colorschemes from images"
 keywords = ["colorscheme", "theme", "terminal", "awesomewm", "kitty", "rofi", "waybar", "dunst"]
 
-version = "1.1.7"
+version = "1.1.8"
 requires-python = ">=3.12,<3.14"
 
 license = "GPL-3.0-or-later"
