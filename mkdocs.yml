@@ -79,3 +79,6 @@ extra_css:
   - stylesheets/extra.css
 
 copyright: Copyright &copy; 2026 <a href="https://piotrkrzysztof.dev">Piotr Krzysztof Lis</a>
+
+hooks:
+  - hooks/lastmod.py

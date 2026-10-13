@@ -17,6 +17,7 @@ steps:
     commands:
       - pip install poetry
       - poetry install --no-interaction --only main,docs
+      - git fetch --unshallow || true # full history: sitemap lastmod comes from git
       - poetry run mkdocs build --strict
       - |
         apt-get update && apt-get install -y git
