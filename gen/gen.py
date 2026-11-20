@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 from colour.colour import Colour
@@ -47,19 +48,15 @@ class ConfigGen:
         """
         Normalize the filename.
 
-        Replaces _ with - and spaces with _ and converts to lowercase.
+        Replaces every character except letters, digits, "_", "." and "-" with "-",
+        converts to lowercase and replaces "_" with "-".
 
         Args:
             filename (str): The filename to normalize.
         Returns:
             str: The normalized filename.
         """
-        normalized = filename.replace(" ", "-").lower()
-
-        if "_" in normalized:
-            return normalized.replace("_", "-")
-
-        return normalized
+        return re.sub(r"[^\w.-]", "-", filename).lower().replace("_", "-")
 
     def __init__(self, palette: list[Colour], colorscheme: str, theme: str) -> None:
         """
@@ -70,7 +67,7 @@ class ConfigGen:
             colorscheme (str): Name of the colorscheme.
         """
         self.palette = palette
-        self.cfg_name = colorscheme
+        self.cfg_name = " ".join(colorscheme.split())
         self.filename = self.__normalize_filename(colorscheme) + f"-{theme}"
 
     def _check_directory(self) -> None:

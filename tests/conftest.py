@@ -177,6 +177,20 @@ def test_rofi_config(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
+def test_tmux_config(tmp_path: Path) -> Path:
+    """Create a temporary tmux config file for testing."""
+    cfg_dir = tmp_path / "cfg"
+    cfg_dir.mkdir(exist_ok=True)
+    config_file = cfg_dir / ".tmux.conf"
+    config_file.write_text(
+        "##### Better colors #####\n"
+        'set -g default-terminal "tmux-256color"\n'
+        'set -ga terminal-overrides ",*:Tc"\n'
+    )
+    return config_file
+
+
+@pytest.fixture
 def test_waybar_config(tmp_path: Path) -> Path:
     """Create a temporary waybar style.css file for testing."""
     cfg_dir = tmp_path / "cfg"
@@ -193,3 +207,9 @@ def reset_env(monkeypatch: pytest.MonkeyPatch) -> None:
     """Reset environment variables for each test."""
     monkeypatch.delenv("COLORGEN_VERBOSE", raising=False)
     monkeypatch.delenv("COLORGEN_THEME", raising=False)
+
+
+@pytest.fixture(autouse=True)
+def isolated_home(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Redirect Path.home so tests never write into the real config."""
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)

@@ -14,36 +14,46 @@ class DunstGen(ConfigGen):
         self.colors_dir = Path.home() / ".config" / "dunst" / "dunstrc.d"
         self.filename = "99-colors.conf"
         self.filepath = self.colors_dir / self.filename
+        self._colors: dict[str, Colour] = {colour.id: colour for colour in self.palette}
         self._check_directory()
 
+    def _resolve(self, colour_id: str, index: int, fallback: str) -> str:
+        colour = self._colors.get(colour_id)
+        if colour is None and index < len(self.palette):
+            colour = self.palette[index]
+        return colour.hex if colour is not None else fallback
+
     def _write_config(self) -> None:
-        bg = self.palette[0].hex  # background
-        fg = self.palette[1].hex  # foreground
-        cursor = self.palette[2].hex  # cursor - used as frame accent
-        color0 = self.palette[3].hex  # color0 - darker accent
-        color5 = self.palette[8].hex  # color5 - urgent/critical
+        bg = self._resolve("background", 0, "#1e1e1e")
+        fg = self._resolve("foreground", 1, "#dcdcdc")
+        accent = self._resolve("cursor", 2, "#6495ed")
+        neutral = self._resolve("color0", 3, "#282828")
+        critical = self._resolve("color5", 8, "#d33682")
 
+        lines = [
+            f"# colorgen: {self.cfg_name}",
+            "",
+            "[global]",
+            f'    frame_color = "{accent}"',
+            "    separator_color = frame",
+            "",
+            "[urgency_low]",
+            f'    background = "{bg}"',
+            f'    foreground = "{fg}"',
+            f'    frame_color = "{neutral}"',
+            "",
+            "[urgency_normal]",
+            f'    background = "{bg}"',
+            f'    foreground = "{fg}"',
+            f'    frame_color = "{accent}"',
+            "",
+            "[urgency_critical]",
+            f'    background = "{neutral}"',
+            f'    foreground = "{critical}"',
+            f'    frame_color = "{critical}"',
+        ]
         with open(self.filepath, "w") as f:
-            f.write(f"# colorgen: {self.cfg_name}\n\n")
-
-            f.write("[global]\n")
-            f.write(f'    frame_color = "{cursor}"\n')
-            f.write('    separator_color = "frame"\n\n')
-
-            f.write("[urgency_low]\n")
-            f.write(f'    background = "{bg}"\n')
-            f.write(f'    foreground = "{fg}"\n')
-            f.write(f'    frame_color = "{color0}"\n\n')
-
-            f.write("[urgency_normal]\n")
-            f.write(f'    background = "{bg}"\n')
-            f.write(f'    foreground = "{fg}"\n')
-            f.write(f'    frame_color = "{cursor}"\n\n')
-
-            f.write("[urgency_critical]\n")
-            f.write(f'    background = "{color0}"\n')
-            f.write(f'    foreground = "{color5}"\n')
-            f.write(f'    frame_color = "{color5}"\n')
+            f.write("\n".join(lines) + "\n")
 
     def write(self) -> None:
         """Write generated palette into dunst drop-in config.
@@ -54,6 +64,5 @@ class DunstGen(ConfigGen):
         self._write_config()
 
     def apply(self) -> None:
-        """Apply by writing the drop-in. Dunst reads it on next restart."""
-        # No config editing needed - drop-ins override automatically
+        """Apply by writing the drop-in. Dunst reads it on next reload."""
         self.write()

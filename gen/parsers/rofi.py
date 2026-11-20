@@ -63,17 +63,9 @@ class RofiGen(ConfigGen):
         if line in ["\n", "\r\n"]:
             return ("", False)
 
+        cfg = f'@import "~/.config/rofi/colors/{self.filename}"\n'
         if self.filename in line and "@import" in line:
-            if "//" in line:
-                return (line[2:], False)
-            elif "// " in line:
-                return (line[3:], False)
-            elif "/*" in line and "*/" in line:
-                return (line[2 : len(line) - 2], False)
-            elif "/* " in line and " */" in line:
-                return (line[3 : len(line) - 3], False)
-            else:
-                return (line, False)
+            return (cfg, False)
 
         if "@import" in line and self.filename not in line:
             if "//" in line or "/*" in line:
@@ -85,7 +77,6 @@ class RofiGen(ConfigGen):
         if present:
             return (line, True)
         else:
-            cfg = f'@import "~/.config/rofi/colors/{self.filename}"\n'
             return (cfg, True)
 
     def apply(self) -> None:
