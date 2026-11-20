@@ -1,13 +1,13 @@
 ---
 title: Terminal colorscheme generator from images
-description: colorgen is a Python command line tool that pulls dominant colors from an image and writes terminal colorschemes for kitty, AwesomeWM, Waybar, dunst and rofi.
+description: colorgen is a Python command line tool that pulls dominant colors from an image and writes terminal colorschemes for kitty, AwesomeWM, Waybar, dunst, rofi, tmux, waylock and wlr-utils.
 ---
 
 # colorgen
 
 <div align="center" markdown>
 
-A CLI tool that extracts colors from images and generates terminal colorschemes for kitty, AwesomeWM, Waybar, dunst, and rofi.
+A CLI tool that extracts colors from images and generates terminal colorschemes for kitty, AwesomeWM, Waybar, dunst, rofi, tmux, waylock, and wlr-utils.
 
 **Repo:** [Codeberg](https://codeberg.org/piotrkrzysztof/colorgen) (primary) · [GitHub](https://github.com/straightchlorine/colorgen) (mirror)
 
@@ -38,6 +38,10 @@ It extracts dominant colors using K-means clustering, maps them to a 19-color te
 - **Waybar** - status bar colors via `@define-color` CSS variables
 - **dunst** - notification daemon colors via `dunstrc.d` drop-in
 - **rofi** - launcher color theme (expects [adi1090x/rofi](https://github.com/adi1090x/rofi) layout)
+- **tmux** - status line, panes, menus and popups via a sourced snippet (tmux 3.8+)
+- **waylock** - screen locker colors as shell variables ([lock script example](usage/cli.md#waylock))
+- **[wlr-utils](https://github.com/sjourdois/wlr-utils)** - `wlr-chooser` screencast picker and
+  `wlr-switcher` Alt-Tab overlay
 
 ## Links
 

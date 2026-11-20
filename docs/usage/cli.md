@@ -19,7 +19,7 @@ colorgen IMAGE [OPTIONS]
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `-c, --config` | Target utilities: `kitty`, `awesome`, `rofi`, `waybar`, `dunst` | — |
+| `-c, --config` | Target utilities: `kitty`, `awesome`, `rofi`, `waybar`, `dunst`, `tmux`, `waylock`, `wlr-utils` | — |
 | `-fc, --full-config` | Generate for all targets (mutually exclusive with `-c`) | — |
 | `-t, --theme` | `dark` or `light` | `dark` |
 | `-a, --apply` | Apply generated theme to config files | off |
@@ -54,13 +54,72 @@ colorgen wallpaper.png --full-config --theme light --apply
 | Waybar | `~/.config/waybar/colors/<name>-<theme>.css` | `~/.config/waybar/style.css` |
 | dunst | `~/.config/dunst/dunstrc.d/99-colors.conf` | auto-loaded as drop-in |
 | rofi | `~/.config/rofi/colors/<name>-<theme>.rasi` | `~/.config/rofi/launchers/type-4/shared/colors.rasi` |
+| tmux | `~/.config/tmux/colors/<name>-<theme>.conf` | `~/.tmux.conf` (`source-file`) |
+| waylock | `~/.config/sway/colors/<name>-<theme>.sh` | `~/.config/sway/colors/waylock.sh` |
+| wlr-utils | `~/.config/wlr-utils/themes/<name>-<theme>.toml` | `~/.config/wlr-utils/config.toml` |
 
-`<name>` is the image file name without extension, lowercased, with spaces and underscores turned into hyphens.
+`<name>` is the image file name without extension, lowercased, with every character other than
+letters, digits, `.` and `-` turned into `-`: `My Wall_paper.png` with `--theme dark` gives
+`my-wall-paper-dark`. `--full-config` runs all eight targets.
 
 ## How apply works
 
-When you use `--apply`, colorgen comments out the current theme include and adds the new one. Nothing is deleted. You can switch back by editing the config manually.
+`--apply` comments out the current theme include and adds the new one. Nothing is deleted, and
+applying an earlier theme again re-activates its commented line.
 
-For kitty, AwesomeWM and rofi the config must already contain a theme include line (for kitty, `include colors/<name>-<theme>.conf`). colorgen replaces that line and does not add one. Waybar gets an `@import` line at the top of style.css if none exists.
+kitty, AwesomeWM and rofi need a theme include line already in the config (for kitty,
+`include colors/<name>-<theme>.conf`); colorgen replaces it and never adds one. Waybar gets an
+`@import` at the top of style.css if none exists.
 
-The main config file must already exist. If it does not, colorgen prints `Skipping <target>: config file not found` for that target and moves on. dunst has no include to edit: the drop-in is rewritten and dunst picks it up on its next restart.
+The main config must already exist, otherwise colorgen prints
+`Skipping <target>: config file not found` and moves on. If a target fails for another reason
+(unreadable or unexpected config), it prints `Skipping <target>: <reason>` and continues with the
+rest. dunst has no include to edit: its drop-in is rewritten and picked up after `dunstctl reload`
+or a restart.
+
+### tmux
+
+Needs tmux 3.8 or newer; older versions ignore the lines. tmux uses the dark colors on a dark
+terminal background and the light ones on a light background. They style the status line,
+messages, pane borders, menus, popups and copy mode.
+
+`--apply` edits `~/.tmux.conf` (or `~/.config/tmux/tmux.conf` if that is the only one). It adds
+`source-file '<snippet path>'` if missing, comments out the previously applied one and touches no
+other line. Running servers pick up the colors after `tmux source-file ~/.tmux.conf`.
+
+### waylock
+
+waylock takes its colors as command-line flags, so colorgen writes them as shell variables in
+`~/.config/sway/colors/<name>-<theme>.sh`, in waylock's `0xRRGGBB` format:
+
+| Variable | Flag |
+| --- | --- |
+| `WAYLOCK_INIT` | `-init-color` |
+| `WAYLOCK_INPUT` | `-input-color` |
+| `WAYLOCK_INPUT_ALT` | `-input-alt-color` |
+| `WAYLOCK_FAIL` | `-fail-color` |
+
+`--apply` rewrites `~/.config/sway/colors/waylock.sh`, which your lock script sources:
+
+```sh
+#!/bin/sh
+[ -r "$HOME/.config/sway/colors/waylock.sh" ] && . "$HOME/.config/sway/colors/waylock.sh"
+exec waylock -fork-on-lock \
+	-init-color "${WAYLOCK_INIT:-0x000000}" \
+	-input-color "${WAYLOCK_INPUT:-0x1a1a1a}" \
+	-input-alt-color "${WAYLOCK_INPUT_ALT:-0x1ak1a1a}" \
+	-fail-color "${WAYLOCK_FAIL:-0xdc322f}"
+```
+
+A `waylock.sh` that does not start with `# colorgen:` is left alone and the target is skipped.
+
+### wlr-utils
+
+Themes `wlr-chooser` (screencast picker) and `wlr-switcher` (Alt-Tab overlay) with twelve color
+keys in `~/.config/wlr-utils/themes/<name>-<theme>.toml`.
+
+`--apply` sets `name = "<name>-<theme>"` in the `[theme]` table of `config.toml`, commenting out
+the previous name line and appending `[theme]` if missing. Without a `config.toml` the target is
+skipped (the theme file is still written); create one to opt in. An inline `[theme]` table or
+dotted keys also skip the target. Colors set directly in `[theme]` override the theme file. New
+themes show up on the next overlay, no restart needed.

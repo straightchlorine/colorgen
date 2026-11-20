@@ -58,7 +58,8 @@ Enum: `Theme.DARK`, `Theme.LIGHT`
 
 ### Config generators
 
-`KittyGen`, `AwesomeGen`, `RofiGen`, `WaybarGen` and `DunstGen` (all in `gen.parsers`) follow the same interface:
+`KittyGen`, `AwesomeGen`, `RofiGen`, `WaybarGen`, `DunstGen`, `TmuxGen`, `WaylockGen` and
+`WlrUtilsGen` (all in `gen.parsers`) follow the same interface:
 
 ```python
 from gen.parsers import KittyGen
@@ -72,4 +73,6 @@ gen.apply()   # update main config to use it
 
 Orchestrates extraction and generation for multiple targets at once.
 
-`configs` is a list such as `["kitty", "rofi"]`, or `True` for every target. `apply=True` also updates the main config files, except dunst, which only rewrites its drop-in.
+`configs` is a list such as `["kitty", "rofi"]`, or `True` for every target. `apply=True` also
+updates the main config files, except dunst and waylock, which only rewrite their own file. A target
+that fails is skipped with `Skipping <target>: <reason>` and the rest continue.

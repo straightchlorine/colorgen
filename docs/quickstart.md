@@ -56,4 +56,10 @@ colorgen wallpaper.png --config kitty --theme light --apply
 ## Tips
 
 - **Preview first**: Use `--preview` to see what you're getting before applying
-- **Existing include needed**: with `--apply`, the main config file of kitty, AwesomeWM, rofi or Waybar must already exist, or that target is skipped (the color file is still written); dunst has no main config to check. For kitty, AwesomeWM and rofi the file must also already have a theme include line, such as `include colors/<name>-<theme>.conf` in kitty.conf. colorgen swaps that line and does not add one. Waybar is the exception: if there is no import, colorgen adds one at the top of style.css.
+- **Existing include needed**: with `--apply`, the main config of kitty, AwesomeWM, rofi,
+  Waybar, tmux or wlr-utils must already exist, or that target is skipped (the color file is still
+  written). dunst and waylock have no main config. kitty, AwesomeWM and rofi also need a theme
+  include line already in place, such as `include colors/<name>-<theme>.conf` in kitty.conf:
+  colorgen swaps it and never adds one. Waybar and tmux get one added if missing.
+- **Failures don't stop the run**: a failing target prints `Skipping <target>: <reason>` and the
+  rest continue.

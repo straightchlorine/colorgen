@@ -2,7 +2,7 @@
 
 <div align="center">
 
-Generate terminal colorschemes from images for kitty, AwesomeWM, Waybar, dunst, and rofi.
+Generate terminal colorschemes from images for kitty, AwesomeWM, Waybar, dunst, rofi, tmux, waylock, and wlr-utils.
 
 **Repo:** [Codeberg](https://codeberg.org/piotrkrzysztof/colorgen) (primary) · [GitHub](https://github.com/straightchlorine/colorgen) (mirror)
 
@@ -64,6 +64,11 @@ Extracts 18 dominant colors from the image via K-means clustering, then maps the
 - **Waybar** - status bar colors via `@define-color` CSS variables
 - **dunst** - notification daemon colors via `dunstrc.d` drop-in
 - **rofi** - launcher theme ([adi1090x/rofi](https://github.com/adi1090x/rofi) layout)
+- **tmux** - status line, panes, menus and popups via a sourced snippet (tmux 3.8+)
+- **waylock** - screen locker colors as shell variables
+  ([lock script example](https://docs.colorgen.piotrkrzysztof.dev/usage/cli/#waylock))
+- **[wlr-utils](https://github.com/sjourdois/wlr-utils)** - `wlr-chooser` screencast picker and
+  `wlr-switcher` Alt-Tab overlay
 
 ## Development
 

@@ -7,7 +7,10 @@ description: "Answers about colorgen: the 19-color palette, how colors are picke
 
 ## Will it overwrite my config?
 
-No. When applying, colorgen comments out your current theme include and adds the new one. You can switch back by editing the config file. Generated color files are rewritten on each run, and dunst always uses a single `99-colors.conf`, so its previous colors are replaced.
+No. When applying, colorgen comments out your current theme include and adds the new one; apply that
+theme again to switch back. Generated color files are rewritten on each run. dunst
+(`99-colors.conf`) and waylock (`waylock.sh`) have no include to edit, so their previous colors
+are replaced.
 
 ## How many colors does it generate?
 
@@ -36,6 +39,9 @@ Yes. Create a new parser in `gen/parsers/` — look at `kitty.py` as a reference
 - **Waybar**: `~/.config/waybar/colors/<name>-<theme>.css`
 - **dunst**: `~/.config/dunst/dunstrc.d/99-colors.conf`
 - **rofi**: `~/.config/rofi/colors/<name>-<theme>.rasi`
+- **tmux**: `~/.config/tmux/colors/<name>-<theme>.conf`
+- **waylock**: `~/.config/sway/colors/<name>-<theme>.sh`
+- **wlr-utils**: `~/.config/wlr-utils/themes/<name>-<theme>.toml`
 
 ## Where do I report bugs?
 
