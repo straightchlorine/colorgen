@@ -4,6 +4,7 @@ import pytest
 
 from colour.utils import (
     anchor_score,
+    blend,
     brighten,
     contrast_ratio,
     derive_color,
@@ -146,3 +147,18 @@ class TestEnsureContrast:
         result = ensure_contrast(color, bg, dark_theme=True)
         # Should be similar (might shift slightly due to lightness floor)
         assert contrast_ratio(result, bg) >= 3.0
+
+
+class TestBlend:
+    def test_keeps_first_at_zero(self) -> None:
+        assert blend((10, 20, 30), (200, 100, 50), 0.0) == (10, 20, 30)
+
+    def test_returns_second_at_one(self) -> None:
+        assert blend((10, 20, 30), (200, 100, 50), 1.0) == (200, 100, 50)
+
+    def test_midpoint(self) -> None:
+        assert blend((0, 0, 0), (200, 100, 50), 0.5) == (100, 50, 25)
+
+    def test_clamps_amount(self) -> None:
+        assert blend((10, 20, 30), (200, 100, 50), -1.0) == (10, 20, 30)
+        assert blend((10, 20, 30), (200, 100, 50), 2.0) == (200, 100, 50)

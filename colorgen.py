@@ -23,7 +23,7 @@ class ArgumentParser:
     """
 
     @property
-    def parser(self):
+    def parser(self) -> argparse.ArgumentParser:
         """
         Get the argument parser instance.
 
@@ -33,7 +33,7 @@ class ArgumentParser:
         return self.__parser
 
     @property
-    def args(self):
+    def args(self) -> argparse.Namespace:
         """
         Get the parsed command-line arguments.
 
@@ -48,8 +48,7 @@ class ArgumentParser:
         """
 
         self.__parser = argparse.ArgumentParser(
-            description="Creates a colorscheme based on an image and creates \
-                an colour files for given utilities.",
+            description="Create a colorscheme from an image and write color files for the chosen utilities.",
             epilog="Author: Piotr Krzysztof Lis - github.com/straightchlorine",
         )
 
@@ -57,9 +56,18 @@ class ArgumentParser:
         group.add_argument(
             "--config",
             "-c",
-            help="Generate config for a given utilities",
+            help="Generate config for the given utilities",
             type=str,
-            choices=["kitty", "awesome", "rofi", "waybar", "dunst"],
+            choices=[
+                "kitty",
+                "awesome",
+                "rofi",
+                "waybar",
+                "dunst",
+                "waylock",
+                "tmux",
+                "wlr-utils",
+            ],
             action="extend",
             nargs="+",
         )
@@ -67,8 +75,7 @@ class ArgumentParser:
         group.add_argument(
             "--full-config",
             "-fc",
-            help="Generatre config for every single \
-                            offered utility",
+            help="Generate config for every supported utility",
             action="store_true",
         )
 

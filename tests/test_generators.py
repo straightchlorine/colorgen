@@ -1,5 +1,7 @@
 """Tests for config generator classes."""
 
+import re
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -9,6 +11,9 @@ from gen.gen import ConfigGen, ConfigNotFoundException
 from gen.parsers.dunst import DunstGen
 from gen.parsers.kitty import KittyGen
 from gen.parsers.rofi import RofiGen
+from gen.parsers.tmux import TmuxGen
+from gen.parsers.waylock import WaylockGen
+from gen.parsers.wlrutils import WlrUtilsGen
 
 
 class TestConfigGen:
@@ -216,6 +221,76 @@ class TestKittyGen:
         assert "#include colors/default.conf" in kitty_conf
 
 
+class TestWaylockGen:
+    """Test suite for WaylockGen class."""
+
+    def test_waylock_gen_initialization(self, sample_palette: list[Colour]) -> None:
+        """Test WaylockGen initialization."""
+        gen = WaylockGen(sample_palette, "test_theme", "dark")
+
+        assert gen.filename == "test-theme-dark.sh"
+        assert str(gen.filepath).endswith(".config/sway/colors/test-theme-dark.sh")
+        assert str(gen.config_path).endswith(".config/sway/colors/waylock.sh")
+
+    def test_waylock_write_config(self, sample_palette: list[Colour]) -> None:
+        """Test writing the waylock colour snippet."""
+        gen = WaylockGen(sample_palette, "test_theme", "dark")
+        gen.write()
+
+        assert gen.filepath.read_text() == (
+            "# colorgen: test-theme-dark.sh\n"
+            "WAYLOCK_INIT=0x1e1e1e\n"
+            "WAYLOCK_INPUT=0xdcdcdc\n"
+            "WAYLOCK_INPUT_ALT=0xeee8d5\n"
+            "WAYLOCK_FAIL=0xdc322f\n"
+        )
+
+    def test_waylock_apply_creates_and_overwrites_own_file(
+        self, sample_palette: list[Colour]
+    ) -> None:
+        """apply() creates the stable file, then replaces it with the next theme."""
+        gen = WaylockGen(sample_palette, "test_theme", "dark")
+        gen.write()
+        gen.apply()
+        assert gen.config_path.read_text() == gen.filepath.read_text()
+
+        gen2 = WaylockGen(sample_palette, "other", "light")
+        gen2.write()
+        gen2.apply()
+        assert gen2.config_path.read_text() == gen2.filepath.read_text()
+        assert gen2.config_path.read_text().splitlines()[0] == "# colorgen: other-light.sh"
+
+    def test_waylock_apply_refuses_foreign_file(self, sample_palette: list[Colour]) -> None:
+        """apply() leaves a hand-written waylock.sh untouched."""
+        gen = WaylockGen(sample_palette, "test_theme", "dark")
+        foreign = b"# mine\nWAYLOCK_INIT=0x123456\nEXTRA=1\n"
+        gen.config_path.write_bytes(foreign)
+
+        with pytest.raises(ValueError, match="not written by colorgen"):
+            gen.apply()
+
+        assert gen.config_path.read_bytes() == foreign
+
+    def test_waylock_fallback_colours(self) -> None:
+        """Test defaults are used when the palette lacks an id."""
+        gen = WaylockGen([Colour("background", (0, 0, 0))], "test", "dark")
+        gen.write()
+
+        assert gen.filepath.read_text() == (
+            "# colorgen: test-dark.sh\n"
+            "WAYLOCK_INIT=0x000000\n"
+            "WAYLOCK_INPUT=0x1a1a1a\n"
+            "WAYLOCK_INPUT_ALT=0x1a1a1a\n"
+            "WAYLOCK_FAIL=0xdc322f\n"
+        )
+
+    def test_waylock_directory_creation(self, sample_palette: list[Colour]) -> None:
+        """Test that the colors directory is created if it doesn't exist."""
+        gen = WaylockGen(sample_palette, "test", "dark")
+
+        assert gen.colors_dir.is_dir()
+
+
 class TestDunstGen:
     """Test suite for DunstGen class."""
 
@@ -294,6 +369,174 @@ class TestDunstGen:
         assert gen.colors_dir.is_dir()
 
 
+class TestTmuxGen:
+    """Test suite for TmuxGen class."""
+
+    @staticmethod
+    def _apply(palette: list[Colour], name: str, theme: str = "dark") -> TmuxGen:
+        gen = TmuxGen(palette, name, theme)
+        gen.write()
+        gen.apply()
+        return gen
+
+    @staticmethod
+    def _active(config: Path) -> list[str]:
+        return [
+            line
+            for line in config.read_text().splitlines()
+            if line.startswith("source-file ") and "/colors/" in line
+        ]
+
+    def test_tmux_gen_initialization(self, sample_palette: list[Colour], tmp_path: Path) -> None:
+        """Test TmuxGen initialization."""
+        gen = TmuxGen(sample_palette, "test_theme", "dark")
+
+        assert gen.filename == "test-theme-dark.conf"
+        assert gen.colors_dir == tmp_path / ".config" / "tmux" / "colors"
+        assert gen.colors_dir.is_dir()
+        assert gen.filepath == gen.colors_dir / "test-theme-dark.conf"
+        assert gen._include == f"source-file '{gen.filepath}'\n"
+
+    @pytest.mark.parametrize("theme", ["dark", "light"])
+    def test_tmux_write_config(self, sample_palette: list[Colour], theme: str) -> None:
+        """Test the snippet: header, -q option lines, theme-specific names."""
+        gen = TmuxGen(sample_palette, "test_theme", theme)
+        gen.write()
+
+        lines = gen.filepath.read_text().splitlines()
+        assert lines[0] == f"# colorgen: test_theme ({theme})"
+        assert len(lines) == 11
+        assert all(line.startswith(f"set -gq {theme}-theme-") for line in lines[1:])
+        assert lines[1] == f'set -gq {theme}-theme-black "#1e1e1e"'  # background
+        assert lines[3] == f'set -gq {theme}-theme-green "#859900"'  # color2
+        assert lines[9] == f'set -gq {theme}-theme-dark-grey "#282828"'  # color0
+        assert lines[10] == f'set -gq {theme}-theme-white "#fdf6e3"'  # color15
+
+    def test_tmux_apply_appends_after_blank_line(
+        self, sample_palette: list[Colour], test_tmux_config: Path
+    ) -> None:
+        """Test apply() appends the include after one blank line."""
+        original = test_tmux_config.read_text()
+        gen = TmuxGen(sample_palette, "t", "dark")
+        gen.config_path = test_tmux_config
+        gen.write()
+        gen.apply()
+
+        assert test_tmux_config.read_text() == f"{original}\n{gen._include}"
+
+    def test_tmux_apply_without_trailing_newline(self, sample_palette: list[Colour]) -> None:
+        """Test a config whose last line has no newline."""
+        config = Path.home() / ".tmux.conf"
+        config.write_text("set -g mouse on")
+        gen = self._apply(sample_palette, "t")
+
+        assert config.read_text() == f"set -g mouse on\n\n{gen._include}"
+
+    def test_tmux_apply_twice_is_noop(self, sample_palette: list[Colour]) -> None:
+        """Test applying the same theme twice leaves the file byte-identical."""
+        config = Path.home() / ".tmux.conf"
+        config.write_text("set -g mouse on\n")
+        self._apply(sample_palette, "t")
+        first = config.read_bytes()
+        self._apply(sample_palette, "t")
+
+        assert config.read_bytes() == first
+
+    def test_tmux_apply_switches_theme(self, sample_palette: list[Colour]) -> None:
+        """Test A -> B comments A out and puts B right after it; toggling adds no lines."""
+        config = Path.home() / ".tmux.conf"
+        config.write_text("set -g mouse on\n")
+        a = self._apply(sample_palette, "a")
+        b = self._apply(sample_palette, "b")
+
+        assert config.read_text() == f"set -g mouse on\n\n# {a._include}{b._include}"
+
+        size = len(config.read_text().splitlines())
+        for gen in (a, b, a, b):
+            self._apply(sample_palette, gen.cfg_name)
+            assert len(config.read_text().splitlines()) == size
+            assert self._active(config) == [gen._include.strip()]
+
+    def test_tmux_apply_inserts_after_last_include(self, sample_palette: list[Colour]) -> None:
+        """Test the new include goes right after the last colorgen include, not at EOF."""
+        config = Path.home() / ".tmux.conf"
+        a = TmuxGen(sample_palette, "a", "dark")
+        config.write_text(f"set -g mouse on\n{a._include}set -g status on\n")
+        b = self._apply(sample_palette, "b")
+
+        assert config.read_text() == (
+            f"set -g mouse on\n# {a._include}{b._include}set -g status on\n"
+        )
+
+    def test_tmux_apply_mixed_includes(self, sample_palette: list[Colour]) -> None:
+        """Test commented foreign includes stay single-commented, duplicates are commented."""
+        config = Path.home() / ".tmux.conf"
+        foreign = TmuxGen(sample_palette, "foreign", "dark")._include
+        own = TmuxGen(sample_palette, "own", "dark")._include
+        config.write_text(f"# {foreign}{own}{own}")
+        self._apply(sample_palette, "own")
+
+        assert config.read_text() == f"# {foreign}{own}# {own}"
+
+    def test_tmux_apply_suffix_names(self, sample_palette: list[Colour]) -> None:
+        """Test a theme whose name is a suffix of another does not overwrite it."""
+        config = Path.home() / ".tmux.conf"
+        config.write_text("set -g mouse on\n")
+        big = self._apply(sample_palette, "big-wall")
+        wall = self._apply(sample_palette, "wall")
+
+        assert config.read_text() == f"set -g mouse on\n\n# {big._include}{wall._include}"
+
+    def test_tmux_apply_keeps_user_lines(self, sample_palette: list[Colour]) -> None:
+        """Test lines that are not colorgen includes survive byte for byte."""
+        colors = Path.home() / ".config" / "tmux" / "colors"
+        user = (
+            'bind r source-file ~/.tmux.conf \\; display "Reloaded!"\n'
+            f"bind C source-file {colors}/x-dark.conf \\; display hi\n"
+            "source-file ~/.config/tmux/mycolors/base.conf\n"
+            "source-file /opt/colors/x.conf\n"
+            "run-shell 'echo source-file colors/x'\n"
+            f"if-shell 'true' 'source-file {colors}/x-dark.conf'\n"
+            "# source-file is great\n"
+        )
+        config = Path.home() / ".tmux.conf"
+        config.write_text(user)
+        gen = self._apply(sample_palette, "x")
+
+        assert config.read_text() == f"{user}\n{gen._include}"
+
+    def test_tmux_apply_replaces_unquoted_include(self, sample_palette: list[Colour]) -> None:
+        """Test an unquoted include from an older version is replaced, not duplicated."""
+        gen = TmuxGen(sample_palette, "x", "dark")
+        config = Path.home() / ".tmux.conf"
+        config.write_text(f"set -g mouse on\nsource-file {gen.filepath}\nset -g status on\n")
+        gen.write()
+        gen.apply()
+
+        assert config.read_text() == f"set -g mouse on\n{gen._include}set -g status on\n"
+
+    def test_tmux_config_path_selection(self, sample_palette: list[Colour]) -> None:
+        """Test ~/.config/tmux/tmux.conf is used only when ~/.tmux.conf is missing."""
+        home = Path.home()
+        xdg = home / ".config" / "tmux" / "tmux.conf"
+        legacy = home / ".tmux.conf"
+
+        with pytest.raises(ConfigNotFoundException):
+            self._apply(sample_palette, "t")
+
+        xdg.write_text("# xdg\n")
+        assert TmuxGen(sample_palette, "t", "dark").config_path == xdg
+        self._apply(sample_palette, "t")
+        assert "source-file" in xdg.read_text()
+
+        xdg_applied = xdg.read_text()
+        legacy.write_text("# legacy\n")
+        assert TmuxGen(sample_palette, "t", "dark").config_path == legacy
+        self._apply(sample_palette, "t")
+        assert "source-file" in legacy.read_text()
+        assert xdg.read_text() == xdg_applied
+
+
 class TestRofiGen:
     """Test suite for RofiGen class."""
 
@@ -318,3 +561,218 @@ class TestRofiGen:
             '/* @import "~/.config/rofi/colors/b-dark.rasi" */\n'
         )
         assert apply("a") == final
+
+
+class TestWlrUtilsGen:
+    """Test suite for WlrUtilsGen class."""
+
+    THEME_KEYS = [
+        "backdrop",
+        "bg",
+        "card",
+        "tile",
+        "tile-hover",
+        "tile-selected",
+        "thumb",
+        "text",
+        "text-dim",
+        "accent",
+        "screen-accent",
+        "window-accent",
+    ]
+
+    def test_initialization(self, sample_palette: list[Colour]) -> None:
+        gen = WlrUtilsGen(sample_palette, "Test_Wallpaper", "dark")
+
+        assert gen.filename == "test-wallpaper-dark.toml"
+        assert gen.filepath == (
+            Path.home() / ".config" / "wlr-utils" / "themes" / "test-wallpaper-dark.toml"
+        )
+        assert gen.config_path == Path.home() / ".config" / "wlr-utils" / "config.toml"
+
+    def test_write_theme_file(self, sample_palette: list[Colour]) -> None:
+        gen = WlrUtilsGen(sample_palette, "wallpaper", "dark")
+        gen.write()
+
+        content = gen.filepath.read_text()
+        assert "[theme]" not in content
+        for key in self.THEME_KEYS:
+            assert key in content
+        assert sample_palette[0].hex in content
+        assert sample_palette[1].hex in content
+
+    @staticmethod
+    def _gen(palette: list[Colour], content: str | None, theme: str = "dark") -> WlrUtilsGen:
+        gen = WlrUtilsGen(palette, "wallpaper", theme)
+        if content is not None:
+            gen.config_path.parent.mkdir(parents=True, exist_ok=True)
+            gen.config_path.write_text(content)
+        return gen
+
+    def test_apply_skips_missing_config(self, sample_palette: list[Colour]) -> None:
+        gen = self._gen(sample_palette, None)
+        with pytest.raises(ConfigNotFoundException):
+            gen.apply()
+        assert not gen.config_path.exists()
+
+    @pytest.mark.parametrize(
+        ("before", "after"),
+        [
+            pytest.param(
+                '[theme]\nname = "nord"\n\n[chooser]\ntile-width = 320\n',
+                '[theme]\nname = "wallpaper-dark"\n# name = "nord"\n\n[chooser]\ntile-width = 320\n',
+                id="other-name",
+            ),
+            pytest.param(
+                "[theme] # comment\nx = 1\n",
+                '[theme] # comment\nname = "wallpaper-dark"\nx = 1\n',
+                id="header-comment",
+            ),
+            pytest.param(
+                "[a]\nk = 1\n[theme]\nx = 1\n[b]\nk = 2\n",
+                '[a]\nk = 1\n[theme]\nname = "wallpaper-dark"\nx = 1\n[b]\nk = 2\n',
+                id="no-name-middle",
+            ),
+            pytest.param(
+                "[a]\nk = 1\n[theme]",
+                '[a]\nk = 1\n[theme]\nname = "wallpaper-dark"\n',
+                id="last-line-no-newline",
+            ),
+            pytest.param(
+                "[chooser]\ntile-width = 320\n",
+                '[chooser]\ntile-width = 320\n\n[theme]\nname = "wallpaper-dark"\n',
+                id="no-theme",
+            ),
+            pytest.param("", '[theme]\nname = "wallpaper-dark"\n', id="empty"),
+            pytest.param(
+                '[theme]\nname="wallpaper-dark"\n',
+                '[theme]\nname = "wallpaper-dark"\n',
+                id="no-spaces",
+            ),
+            pytest.param(
+                '[theme]\n# name = "wallpaper-dark"\n',
+                '[theme]\nname = "wallpaper-dark"\n',
+                id="commented-own",
+            ),
+            pytest.param(
+                '[theme]\n# name = "wallpaper-dark"\n# name = "wallpaper-dark"\n',
+                '[theme]\nname = "wallpaper-dark"\n# name = "wallpaper-dark"\n',
+                id="commented-twice",
+            ),
+            pytest.param(
+                '[theme]\nname-fallback = "a"\nnamespace = "b"\n',
+                '[theme]\nname = "wallpaper-dark"\nname-fallback = "a"\nnamespace = "b"\n',
+                id="similar-keys",
+            ),
+            pytest.param(
+                '[theme]\nname = "x"\n[theme.sub]\nname = "y"\n[[other]]\nname = "z"\n',
+                '[theme]\nname = "wallpaper-dark"\n# name = "x"\n'
+                '[theme.sub]\nname = "y"\n[[other]]\nname = "z"\n',
+                id="other-tables",
+            ),
+            pytest.param(
+                "[chooser]\nk = 1\n\n",
+                '[chooser]\nk = 1\n\n[theme]\nname = "wallpaper-dark"\n',
+                id="trailing-blank-no-theme",
+            ),
+            pytest.param(
+                '[theme]\nname = "wallpaper-dark" # hi\n',
+                '[theme]\nname = "wallpaper-dark"\n# name = "wallpaper-dark" # hi\n',
+                id="own-name-with-comment",
+            ),
+            pytest.param(
+                '[theme]\nname = "wallpaper-dark-extra"\n',
+                '[theme]\nname = "wallpaper-dark"\n# name = "wallpaper-dark-extra"\n',
+                id="substring-name",
+            ),
+        ],
+    )
+    def test_apply_edits_config(
+        self, sample_palette: list[Colour], before: str, after: str
+    ) -> None:
+        gen = self._gen(sample_palette, before)
+        gen.apply()
+
+        text = gen.config_path.read_text()
+        assert text == after
+        old, new = tomllib.loads(before), tomllib.loads(text)
+        assert new["theme"]["name"] == "wallpaper-dark"
+        for table in set(old) | set(new):
+            if table != "theme":
+                assert new[table] == old[table]
+        old_theme = {k: v for k, v in old.get("theme", {}).items() if k != "name"}
+        assert {k: v for k, v in new["theme"].items() if k != "name"} == old_theme
+
+    def test_apply_switching_is_bounded(self, sample_palette: list[Colour]) -> None:
+        gen = self._gen(sample_palette, '[theme]\nname = "nord"\n')
+        texts = []
+        for theme in ["dark", "light", "dark", "light"]:
+            gen = WlrUtilsGen(sample_palette, "wallpaper", theme)
+            gen.apply()
+            texts.append(gen.config_path.read_text())
+            gen.apply()
+            assert gen.config_path.read_text() == texts[-1]
+        assert (
+            texts[1]
+            == '[theme]\nname = "wallpaper-light"\n# name = "wallpaper-dark"\n# name = "nord"\n'
+        )
+        for text in texts[1:]:
+            assert len(re.findall(r"name = ", text)) == 3
+        assert (
+            texts[2]
+            == '[theme]\n# name = "wallpaper-light"\nname = "wallpaper-dark"\n# name = "nord"\n'
+        )
+        assert texts[3] == texts[1]
+
+    def test_apply_own_name_with_comment_is_stable(self, sample_palette: list[Colour]) -> None:
+        gen = self._gen(sample_palette, '[theme]\nname = "wallpaper-dark" # hi\n')
+        gen.apply()
+        first = gen.config_path.read_bytes()
+        gen.apply()
+        assert gen.config_path.read_bytes() == first
+
+    @pytest.mark.parametrize(
+        "content",
+        [
+            pytest.param('[theme]\nname = "a"\nname = "a"\n', id="duplicate-key"),
+            pytest.param('[theme]\ns = """\nname = "x"\n"""\n', id="name-in-multiline-value"),
+            pytest.param('theme = { name = "x" }\n', id="inline-table"),
+            pytest.param('theme.name = "x"\n', id="dotted"),
+            pytest.param('[[theme]]\nname = "x"\n', id="array-table"),
+            pytest.param('s = """\n[theme]\n"""\n', id="multiline-string"),
+            pytest.param("[theme\nname = 1\n", id="invalid"),
+        ],
+    )
+    def test_apply_rejects_unsupported(self, sample_palette: list[Colour], content: str) -> None:
+        gen = self._gen(sample_palette, content)
+        with pytest.raises(ValueError, match="could not set"):
+            gen.apply()
+        assert gen.config_path.read_text() == content
+
+    @pytest.mark.parametrize("theme", ["dark", "light"])
+    def test_colour_derivation(self, sample_palette: list[Colour], theme: str) -> None:
+        gen = WlrUtilsGen(sample_palette, "wallpaper", theme)
+        gen.write()
+        values = tomllib.loads(gen.filepath.read_text())
+        bg, fg = "#1e1e1e", "#dcdcdc"
+        assert values["bg"] == bg
+        assert values["tile"] == bg
+        assert values["text"] == fg
+        assert values["card"] == {"dark": "#262626", "light": "#161616"}[theme]
+        assert values["text-dim"] == "#7d7d7d"  # per-channel midpoint of 220 and 30
+
+        def channels(value: str) -> list[int]:
+            return [int(value[i : i + 2], 16) for i in (1, 3, 5)]
+
+        steps = [channels(values[k])[0] for k in ("card", "tile-hover", "tile-selected")]
+        assert len({*steps, 30}) == 4
+        if theme == "dark":
+            assert 30 < steps[0] < steps[1] < steps[2]
+            assert values["backdrop"] == "#161616aa"
+        else:
+            assert 30 > steps[0] > steps[1] > steps[2]
+            assert values["backdrop"] == fg + "66"
+        for dim, low, high in zip(
+            channels(values["text-dim"]), channels(bg), channels(fg), strict=True
+        ):
+            assert low < dim < high

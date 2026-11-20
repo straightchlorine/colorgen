@@ -77,6 +77,21 @@ def darken(rgb: tuple[int, int, int], amount: float = 0.15) -> tuple[int, int, i
     return hsl_to_rgb(hue, sat, light)
 
 
+def blend(
+    a: tuple[int, int, int], b: tuple[int, int, int], amount: float = 0.5
+) -> tuple[int, int, int]:
+    """Interpolate between two RGB colors.
+
+    ``amount`` 0.0 keeps ``a``, 1.0 returns ``b``; values outside are clamped.
+    """
+    amount = max(0.0, min(1.0, amount))
+    return (
+        int(round(a[0] + (b[0] - a[0]) * amount)),
+        int(round(a[1] + (b[1] - a[1]) * amount)),
+        int(round(a[2] + (b[2] - a[2]) * amount)),
+    )
+
+
 def desaturate(rgb: tuple[int, int, int], amount: float = 0.5) -> tuple[int, int, int]:
     """Reduce saturation by amount (0-1) in HSL space."""
     hue, sat, light = rgb_to_hsl(rgb)

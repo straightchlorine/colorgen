@@ -10,7 +10,10 @@ from gen.parsers.awesome import AwesomeGen
 from gen.parsers.dunst import DunstGen
 from gen.parsers.kitty import KittyGen
 from gen.parsers.rofi import RofiGen
+from gen.parsers.tmux import TmuxGen
 from gen.parsers.waybar import WaybarGen
+from gen.parsers.waylock import WaylockGen
+from gen.parsers.wlrutils import WlrUtilsGen
 
 
 class GenerationManager:
@@ -52,7 +55,16 @@ class GenerationManager:
 
         # Default configs
         if isinstance(configs, bool) and configs:
-            self.__cfgs = ["kitty", "rofi", "awesome", "waybar", "dunst"]
+            self.__cfgs = [
+                "kitty",
+                "rofi",
+                "awesome",
+                "waybar",
+                "dunst",
+                "waylock",
+                "tmux",
+                "wlr-utils",
+            ]
         else:
             self.__cfgs = configs if isinstance(configs, list) else []
 
@@ -62,6 +74,9 @@ class GenerationManager:
         "rofi": RofiGen,
         "waybar": WaybarGen,
         "dunst": DunstGen,
+        "waylock": WaylockGen,
+        "tmux": TmuxGen,
+        "wlr-utils": WlrUtilsGen,
     }
 
     def generate(self) -> None:
@@ -71,11 +86,12 @@ class GenerationManager:
             if gen_cls is None:
                 continue
 
-            gen = gen_cls(self.palette, self.colorscheme, self.__theme)
-            gen.write()
-
-            if self.__apply:
-                try:
+            try:
+                gen = gen_cls(self.palette, self.colorscheme, self.__theme)
+                gen.write()
+                if self.__apply:
                     gen.apply()
-                except ConfigNotFoundException:
-                    print(f"Skipping {name}: config file not found")
+            except ConfigNotFoundException:
+                print(f"Skipping {name}: config file not found")
+            except (OSError, ValueError) as error:
+                print(f"Skipping {name}: {error}")
